@@ -26,6 +26,7 @@ library
                     , SizeArray
                     , DoubleArray
                     , GameOfLive
+                    , Front
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -37,9 +38,14 @@ library
                     , optics
                     , fused-effects-optics
                     , fused-effects-random	
-                    , fused-effects-mwc-random	
+                    -- , fused-effects-mwc-random	
                     , array
                     , random
+                    , sdl2
+                    , sdl2-gfx
+                    , sdl2-ttf
+                    , text
+
     hs-source-dirs:   src
     default-language: Haskell2010
 
@@ -57,6 +63,7 @@ executable roomsAndMazes
 
     hs-source-dirs:   app
     default-language: Haskell2010
+    ghc-options: -threaded
 
 test-suite roomsAndMazes-test
     default-language: Haskell2010
