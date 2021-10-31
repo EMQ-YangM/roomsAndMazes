@@ -24,6 +24,7 @@ library
                     , Control.Carrier.Array.IO
                     , Room
                     , SizeArray
+                    , DoubleArray
                     , GameOfLive
 
     -- Modules included in this library but not exported.

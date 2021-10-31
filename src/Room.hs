@@ -35,9 +35,9 @@ type family IsOdd' (a :: Nat) :: Constraint where
 
 type IsOdd a = (KnownNat a, IsOdd' a)
 
-genGlobalMap :: forall width height sig m sym.
+genGlobalMap :: forall width height sig m.
                 (IsOdd width, IsOdd height,
-                 HasLabelled SizeArray (SizeArray sym width height Block) sig m,
+                 HasLabelled SizeArray (SizeArray width height Block) sig m,
                  Has Random sig m,
                  MonadIO m)
              => m ()

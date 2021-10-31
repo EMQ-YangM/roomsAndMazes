@@ -1,4 +1,3 @@
-
 {-# LANGUAGE ConstraintKinds            #-}
 {-# LANGUAGE DataKinds                  #-}
 {-# LANGUAGE DeriveGeneric              #-}
@@ -23,8 +22,8 @@ import           Control.Monad
 import           Control.Monad.IO.Class
 import           Data.Kind
 import           Data.Proxy
+import qualified DoubleArray as SA
 import           GHC.TypeLits
-import           SizeArray
 import qualified System.Random as R
 
 data Cell = Live | Dead deriving (Show)
@@ -37,10 +36,9 @@ type family IsOdd' (a :: Nat) :: Constraint where
 type IsOdd a = (KnownNat a, IsOdd' a)
 
 
-
-genGlobalCell :: forall width height sig m sym.
+genGlobalCell :: forall width height sig m.
                 (IsOdd width, IsOdd height,
-                 HasLabelled SizeArray (SizeArray sym width height Cell) sig m,
+                 HasLabelled SA.DoubleArray (SA.DoubleArray width height Cell) sig m,
                  Has Random sig m,
                  MonadIO m)
              => m ()
@@ -52,34 +50,31 @@ genGlobalCell = do
   forM_ [0..h-1] $ \y -> do
     ls <- forM [0..w-1] $ \x -> do
       v0 <- uniformR @Int (1, 20)
-      writeArray x y (b2b (v0 > 19 ))
-      v <- readArray x y
-      return (b2c v)
+      let res = b2b (v0 > 8 )
+      SA.writeArray x y res
+      return (b2c res)
     liftIO $ putStrLn ls
-  -- forM_ [5,6,7] $ \i -> do
-  --   writeArray 5 i Live
 
+  SA.swapArray
 
-  -- forM_ [0..h-1] $ \y -> do
-  --   ls <- forM [0..w-1] $ \x -> do
-  --     -- v0 <- uniformR @Int (1, 20)
-  --     -- writeArray x y (b2b (v0 > 19 ))
-  --     v <- readArray x y
-  --     return (b2c v)
-  --   liftIO $ putStrLn ls
+  SA.sfor $ \x y -> do
+    va <- SA.readArray x y
+    SA.writeArray x y va
 
-  -- let go = do
-  --        liftIO getLine
-  --        sfor updateState
-
-
-  --        forM_ [0..h-1] $ \y -> do
-  --          ls <- forM [0..w-1] $ \x -> do
-  --            v <- readArray @"f" x y
-  --            return (b2c v)
-  --          liftIO $ putStrLn ls
-  --        go
-  -- go
+  let go = do
+         SA.sfor updateState
+         SA.swapArray
+         liftIO $ putStrLn (replicate (w+2) '-')
+         forM_ [0..h-1] $ \y -> do
+           ls <- forM [0..w] $ \x -> do
+             if x == w
+               then return '|'
+               else do
+                 v <- SA.readArray x y
+                 return (b2c v)
+           liftIO $ putStrLn ('|' : ls)
+         go
+  go
 
 b2b :: Bool -> Cell
 b2b True  = Live
@@ -93,43 +88,36 @@ b2c :: Cell -> Char
 b2c Live = '*'
 b2c Dead = ' '
 
-rungen :: IO ()
-rungen = do
-  r <- R.randomIO
-  runRandom (R.mkStdGen r) $ runArray Dead (genGlobalCell @201 @31)
-  return ()
-
 arround :: [(Int,Int)]
 arround = [(0,-1), (0,1)] ++ [(x,y) | x <- [-1,1], y <- [-1,0,1]]
 
--- updateState :: forall width height sig m sym.
---                 (IsOdd width, IsOdd height,
---                  HasLabelled SizeArray (SizeArray sym width height Cell) sig m)
---              => Int -- start x
---              -> Int -- start y
---              -> m ()
--- updateState x y = do
---   let maxWidth = fromIntegral $ natVal @width Proxy
---       maxHeight = fromIntegral $ natVal @height Proxy
---   ls <- forM arround $ \(dx,dy) -> do
---     let x' = (x + dx) `mod` maxWidth
---         y' = (y + dy) `mod` maxHeight
---     readArray x' y'
---   let totalLive = length $ filter isLive ls
---   case totalLive of
---     3 -> writeArray x y Live
---     2 -> return ()
---     _ -> writeArray x y Dead
+updateState :: forall width height sig m.
+                (IsOdd width, IsOdd height,
+                 HasLabelled SA.DoubleArray (SA.DoubleArray width height Cell) sig m)
+             => Int -- start x
+             -> Int -- start y
+             -> m ()
+updateState x y = do
+  let maxWidth = fromIntegral $ natVal @width Proxy
+      maxHeight = fromIntegral $ natVal @height Proxy
+
+  ls <- forM arround $ \(dx,dy) -> do
+    let x' = (x + dx) `mod` maxWidth
+        y' = (y + dy) `mod` maxHeight
+    SA.readArray x' y'
+  let totalLive = length $ filter isLive ls
+
+  old <- SA.readArray x y
+
+  case totalLive of
+    3 -> SA.writeArray x y Live
+    2 -> SA.writeArray x y old
+    _ -> SA.writeArray x y Dead
 
 
 
-
-
-
-
-
-
-
-
-
-
+rungen :: IO ()
+rungen = do
+  r <- R.randomIO
+  runRandom (R.mkStdGen r) $ SA.runArray Dead (genGlobalCell @191 @81)
+  return ()
