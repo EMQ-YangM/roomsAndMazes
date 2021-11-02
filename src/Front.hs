@@ -160,7 +160,7 @@ initGUI = do
 rungen :: IO ()
 rungen = do
   (render, manager) <- initGUI
-  -- r <- R.randomIO
-  runRandom (R.mkStdGen 10) $ SA.runArray Dead (genGlobalCell @159 @119 render manager)
+  r <- R.randomIO
+  runRandom (R.mkStdGen r) $ SA.runArray Dead (genGlobalCell @159 @119 render manager)
   return ()
 
