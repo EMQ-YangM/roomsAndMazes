@@ -67,6 +67,7 @@ checkValue ps@(x, y) = do
                        Empty -> pure ()
                        Road  -> throwError Skip
                        Full  -> throwError Skip
+                       _ -> error "never userd"
 
                    pure [kk]
                ) (\_ -> pure [] )

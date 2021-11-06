@@ -7,6 +7,7 @@
 {-# LANGUAGE GADTs                      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE KindSignatures             #-}
+{-# LANGUAGE LambdaCase                 #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
@@ -14,11 +15,11 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
-{-# LANGUAGE LambdaCase #-}
 module Front where
 
 import           SDL
 
+import           ConnectPoint
 import           Control.Carrier.Error.Either
 import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
@@ -30,16 +31,17 @@ import qualified Data.Array.IO as A
 import           Data.Kind
 import           Data.Proxy
 import qualified Data.Text as T
+import           FloodFill
 import           Foreign.C.Types (CInt)
 import           GHC.TypeLits
 import           Room
-import           FloodFill
 import           SDL.Font as SF
 import           SDL.Framerate
 import           SDL.Primitive
 import           SizeArray
 import           System.Random (randomIO)
 import qualified System.Random as R
+import ConnectPoint (connectPoint)
 
 initGUI :: CInt -> CInt -> IO (Renderer, Manager)
 initGUI w h = do
@@ -76,6 +78,8 @@ renderAll render manager = do
 
   createRooms
   floodFill
+  connectPoint
+
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
       handler event =
@@ -86,12 +90,15 @@ renderAll render manager = do
             sfor (\x y -> writeArray x y Empty)
             createRooms
             floodFill
+            connectPoint
+
           _ -> return ()
   let go = do
          events <- liftIO pollEvents
          mapM_ handler events
 
-         rendererDrawColor render $= V4 255 255 255 255
+         -- rendererDrawColor render $= V4 255 255 255 255
+         rendererDrawColor render $= V4 155 100 0 255
          clear render
 
 
@@ -99,13 +106,19 @@ renderAll render manager = do
              readArray x y >>= \case
                Empty -> pure ()
                Road -> do
-                    rendererDrawColor render $= V4 155 100 0 255
-                    drawRect render
+                    rendererDrawColor render $= V4 0 0 0 255
+                    fillRect render
                           (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
                                             (fromIntegral y * blockWidth)))
                                             (V2 blockWidth blockWidth) ))
                Full -> do
                     rendererDrawColor render $= V4 0 0 255 255
+                    drawRect render
+                          (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                            (fromIntegral y * blockWidth)))
+                                            (V2 blockWidth blockWidth) ))
+               ConnPoint -> do
+                    rendererDrawColor render $= V4 255 255 255 255
                     drawRect render
                           (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
                                             (fromIntegral y * blockWidth)))

@@ -31,3 +31,34 @@ import           Room
 import           SizeArray
 import           System.Random (randomIO)
 import qualified System.Random as R
+
+dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
+
+connectPoint :: forall width height sig m.
+                (IsOdd width, IsOdd height,
+                 HasLabelled SizeArray (SizeArray width height Block) sig m,
+                 Has (Random :+: Error Skip) sig m,
+                 MonadIO m)
+             => m ()
+connectPoint = do
+
+  let w = fromIntegral $ natVal @width Proxy
+      h = fromIntegral $ natVal @height Proxy
+
+  forM_ [1 .. h-2] $ \y -> do
+    forM_ [1 ..w-2] $ \x -> do
+      readArray x y >>= \case
+        Full      -> pure ()
+        Road      -> pure ()
+        ConnPoint -> pure ()
+        Empty     -> do
+          res <- forM dr $ \(dx, dy) -> do
+            readArray (x+dx) (y+dy) >>= \case
+              Full -> return 10
+              Road -> return 1
+              _    -> return 0
+          if sum res > 10
+            then writeArray x y ConnPoint
+            else pure ()
+
+

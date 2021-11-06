@@ -33,6 +33,7 @@ data Block
   = Empty
   | Full
   | Road
+  | ConnPoint
   deriving (Show, Eq)
 
 type family IsOdd' (a :: Nat) :: Constraint where
@@ -42,7 +43,7 @@ type family IsOdd' (a :: Nat) :: Constraint where
 
 type IsOdd a = (KnownNat a, IsOdd' a)
 
-cb = [(3,10), (5,10), (7,4), (15, 1), (25, 10)] :: [(Int,Int)]
+cb = [(9,10), (5,10), (7,4), (15, 1), (25, 10)] :: [(Int,Int)]
 
 createA :: [(Int,Int)] -> (Int, A.Array Int Int)
 createA input =
@@ -63,7 +64,7 @@ createRooms = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-      maxCycle = 20000
+      maxCycle = 2000
 
       (oneS', oneWB) = createA cb
 
@@ -120,9 +121,10 @@ b2b True  = Empty
 b2b False = Full
 
 b2c :: Block -> Char
-b2c Empty = '_'
-b2c Full  = '*'
-b2c Road  = '.'
+b2c Empty     = '_'
+b2c Full      = '*'
+b2c Road      = '.'
+b2c ConnPoint = '+'
 
 rungen :: IO ()
 rungen = do
