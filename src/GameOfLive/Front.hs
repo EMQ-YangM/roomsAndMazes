@@ -13,10 +13,8 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
-module Front
+module GameOfLive.Front
   where
-
-
 
 import           SDL
 
@@ -28,7 +26,7 @@ import           Control.Monad.IO.Class
 import           Data.Kind
 import           Data.Proxy
 import qualified Data.Text as T
-import qualified DoubleArray as SA
+import qualified GameOfLive.DoubleArray as SA
 import           Foreign.C.Types (CInt)
 import           GHC.TypeLits
 import           SDL.Font as SF

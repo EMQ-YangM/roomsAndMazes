@@ -24,11 +24,8 @@ library
                     , Control.Carrier.Array.IO
                     , Room
                     , SizeArray
-                    , DoubleArray
-                    , GameOfLive
-                    , Front
-                    , SendMessage
-                    , SendMessage1
+                    , GameOfLive.DoubleArray
+                    , GameOfLive.Front
 
     -- Modules included in this library but not exported.
     -- other-modules:

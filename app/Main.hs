@@ -1,9 +1,6 @@
 module Main where
 
--- import GameOfLive
--- import Front
-import SendMessage1
+import GameOfLive.Front
 
 main :: IO ()
-main = runfoo
-  -- rungen
+main = rungen
