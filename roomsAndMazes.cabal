@@ -23,6 +23,7 @@ library
                     , Control.Effect.Array
                     , Control.Carrier.Array.IO
                     , Room
+                    , Front
                     , SizeArray
                     , GameOfLive.DoubleArray
                     , GameOfLive.Front

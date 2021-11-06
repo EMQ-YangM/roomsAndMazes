@@ -38,7 +38,7 @@ type family IsOdd' (a :: Nat) :: Constraint where
 
 type IsOdd a = (KnownNat a, IsOdd' a)
 
-cb = [(5,10), (5,10), (7,15), (15, 1)] :: [(Int,Int)]
+cb = [(3,10), (5,10), (7,4), (15, 1), (25, 1)] :: [(Int,Int)]
 
 createA :: [(Int,Int)] -> (Int, A.Array Int Int)
 createA input =
@@ -59,7 +59,7 @@ createRooms = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-      maxCycle = 10000
+      maxCycle = 20000
 
       (oneS', oneWB) = createA cb
 
@@ -101,11 +101,11 @@ createRooms = do
 
   go 0
 
-  forM_ [0..h-1] $ \y -> do
-    ls <- forM [0..w-1] $ \x -> do
-      v <- readArray x y
-      return (b2c v)
-    liftIO $ putStrLn ls
+  -- forM_ [0..h-1] $ \y -> do
+  --   ls <- forM [0..w-1] $ \x -> do
+  --     v <- readArray x y
+  --     return (b2c v)
+  --   liftIO $ putStrLn ls
 
 b2b :: Bool -> Block
 b2b True  = Empty
@@ -120,10 +120,14 @@ rungen = do
   let w = 269 -- natVal @width Proxy
       h = 79 --  natVal @height Proxy
 
+  arr <- liftIO $ A.newArray ((0,0), (fromIntegral w - 1, fromIntegral  h - 1)) Empty
+
   let go = do
         l <- getLine
         r <- randomIO
-        arr <- liftIO $ A.newArray ((0,0), (fromIntegral w - 1, fromIntegral  h - 1)) Empty
+        forM_ [0..h-1] $ \y -> do
+          forM [0..w-1] $ \x -> do
+            A.writeArray arr (x,y) Empty
         runRandom (R.mkStdGen r) $ runArray' arr $ runError @Skip (createRooms @269 @79)
         go
   go

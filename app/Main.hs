@@ -1,7 +1,7 @@
 module Main where
 
 -- import GameOfLive.Front
-import Room
+import Front
 
 main :: IO ()
 main = rungen
