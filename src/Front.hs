@@ -58,7 +58,7 @@ initGUI w h = do
         }
   renderer <- createRenderer window (-1) defaultRenderer
   fm <- SDL.Framerate.manager
-  SDL.Framerate.set fm 30
+  SDL.Framerate.set fm 5
   return (renderer, fm)
 
 
@@ -75,22 +75,18 @@ renderAll render manager = do
   createRooms
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
-
+      handler event =
+        case eventPayload event of
+          QuitEvent -> throwError Skip
+          (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeSpace _))) -> do
+            forM_ [0..h-1] $ \y -> do
+              forM [0..w-1] $ \x -> do
+                writeArray x y Empty
+            createRooms
+          _ -> return ()
   let go = do
-         event <- liftIO pollEvent
-         case event of
-           Nothing -> return ()
-           Just e ->
-             case eventPayload e of
-               QuitEvent -> throwError Skip
-               (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeSpace _))) -> do
-                 forM_ [0..h-1] $ \y -> do
-                   forM [0..w-1] $ \x -> do
-                     writeArray x y Empty
-                 createRooms
-               _ -> return ()
-
-         -- render
+         events <- liftIO pollEvents
+         mapM_ handler events
 
          rendererDrawColor render $= V4 255 255 255 255
          clear render
