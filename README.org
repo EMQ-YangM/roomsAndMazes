@@ -2,3 +2,4 @@
 ** https://indienova.com/indie-game-development/rooms-and-mazes-a-procedural-dungeon-generator/
 ** create rooms
   1. room size odd, global map size odd
+  2. flood fill
