@@ -25,10 +25,12 @@ import qualified Data.Array as A
 import qualified Data.Array.IO as A
 import           Data.Kind
 import           Data.Proxy
+import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Room
+import           Shuffle
 import           SizeArray
-import           System.Random (randomIO)
+import           System.Random (randomIO, mkStdGen)
 import qualified System.Random as R
 
 dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
@@ -67,7 +69,7 @@ checkValue ps@(x, y) = do
                        Empty -> pure ()
                        Road  -> throwError Skip
                        Full  -> throwError Skip
-                       _ -> error "never userd"
+                       _     -> error "never userd"
 
                    pure [kk]
                ) (\_ -> pure [] )
@@ -91,7 +93,9 @@ floodFill = do
           then pure ()
           else do
             writeArray sx sy Road
-            forM_ [(sx + jx, sy + jy) | (jx,jy) <- dr] go
+            i <- uniform
+            let ndr = shuffleSet (mkStdGen i) (Set.fromList dr)
+            forM_ [(sx + jx, sy + jy) | (jx,jy) <- ndr] go
 
   forM_ [1, 3 .. h-1] $ \y -> do
     forM_ [1, 3 ..w-1] $ \x -> do

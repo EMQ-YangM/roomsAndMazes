@@ -26,6 +26,7 @@ library
                     , FloodFill
                     , Front
                     , SizeArray
+                    , Shuffle
                     , GameOfLive.DoubleArray
                     , GameOfLive.Front
 
@@ -41,6 +42,7 @@ library
                     , fused-effects-random	
                     -- , fused-effects-mwc-random	
                     , array
+                    , vector
                     , random
                     , sdl2
                     , sdl2-gfx
