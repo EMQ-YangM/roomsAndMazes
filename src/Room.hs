@@ -81,11 +81,15 @@ createRooms = do
                        then return index
                        else getOdd (a, b)
 
+
               startX <- getOdd (1, w - roomW - 1)
               startY <- getOdd (1, h - roomH - 1)
 
               catchError @Skip
                 (do
+
+                  when (roomH > roomW || roomW > (2 * roomH) ) (throwError Skip) -- room w and h
+
                   forM_ [0, 2.. roomH -1] $ \y -> do
                     forM_ [0, 2 .. roomW -1] $ \x -> do
                       v <- readArray (startX + x) (startY + y)
