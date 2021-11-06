@@ -80,7 +80,7 @@ renderAll render manager = do
   createRooms
   floodFill
   connectPoint
-  antiCarve
+  -- antiCarve
 
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
@@ -93,7 +93,7 @@ renderAll render manager = do
             createRooms
             floodFill
             connectPoint
-            antiCarve
+            -- antiCarve
 
           _ -> return ()
   let go = do
@@ -122,7 +122,7 @@ renderAll render manager = do
                                             (V2 blockWidth blockWidth) ))
                ConnPoint -> do
                     rendererDrawColor render $= V4 255 255 255 255
-                    drawRect render
+                    fillRect render
                           (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
                                             (fromIntegral y * blockWidth)))
                                             (V2 blockWidth blockWidth) ))
@@ -132,19 +132,19 @@ renderAll render manager = do
   go
 
 
-blockWidth = 10 :: CInt
+blockWidth = 20 :: CInt
 
 rungen :: IO ()
 rungen = do
-  let w = 209 -- natVal @width Proxy
-      h = 109 --  natVal @height Proxy
+  let w = 161 -- natVal @width Proxy
+      h = 89 --  natVal @height Proxy
   (render, manager) <- initGUI (fromIntegral w * blockWidth) (fromIntegral h * blockWidth)
 
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
 
   r <- randomIO
   runRandom (R.mkStdGen r) $ runArray' arr $ runError @Skip $ do
-    renderAll @209 @109 render manager
+    renderAll @161 @89 render manager
   SDL.quit
   return ()
 

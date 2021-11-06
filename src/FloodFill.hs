@@ -93,9 +93,9 @@ floodFill = do
           then pure ()
           else do
             writeArray sx sy Road
-            i <- uniform
-            let ndr = shuffleSet (mkStdGen i) (Set.fromList dr)
-            forM_ [(sx + jx, sy + jy) | (jx,jy) <- ndr] go
+            -- i <- uniform
+            -- let ndr = shuffleSet (mkStdGen i) (Set.fromList dr)
+            forM_ [(sx + jx, sy + jy) | (jx,jy) <- dr] go
 
   forM_ [1, 3 .. h-1] $ \y -> do
     forM_ [1, 3 ..w-1] $ \x -> do

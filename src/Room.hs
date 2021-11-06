@@ -64,7 +64,7 @@ createRooms = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-      maxCycle = 20000
+      maxCycle = 2000
 
       (oneS', oneWB) = createA cb
 
@@ -93,7 +93,7 @@ createRooms = do
               catchError @Skip
                 (do
 
-                  when (roomH > roomW || roomW > (2 * roomH) ) (throwError Skip) -- room w and h
+                  when (roomH > (2 * roomW) || roomW > (2 * roomH) ) (throwError Skip) -- room w and h
 
                   forM_ [0, 2.. roomH -1] $ \y -> do
                     forM_ [0, 2 .. roomW -1] $ \x -> do
