@@ -30,7 +30,7 @@ import           GHC.TypeLits
 import           Room
 import           Shuffle
 import           SizeArray
-import           System.Random (randomIO, mkStdGen)
+import           System.Random (mkStdGen, randomIO)
 import qualified System.Random as R
 
 dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
@@ -66,10 +66,10 @@ checkValue ps@(x, y) = do
             catchError @Skip
                (do forM_ ks $ \(kx, ky) ->
                      readArray kx ky >>= \case
-                       Empty -> pure ()
-                       Road  -> throwError Skip
-                       Full  -> throwError Skip
-                       _     -> error "never userd"
+                       Empty     -> pure ()
+                       Road      -> throwError Skip
+                       Full      -> throwError Skip
+                       ConnPoint -> throwError Skip
 
                    pure [kk]
                ) (\_ -> pure [] )

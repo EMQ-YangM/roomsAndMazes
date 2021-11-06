@@ -22,6 +22,7 @@ library
     exposed-modules:  Control.Effect.Array
                     , Control.Carrier.Array.IO
                     , Room
+                    , AntiCarve
                     , ConnectPoint
                     , FloodFill
                     , Front

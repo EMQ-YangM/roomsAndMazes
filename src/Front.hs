@@ -19,7 +19,9 @@ module Front where
 
 import           SDL
 
+import           AntiCarve
 import           ConnectPoint
+import           ConnectPoint (connectPoint)
 import           Control.Carrier.Error.Either
 import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
@@ -41,7 +43,6 @@ import           SDL.Primitive
 import           SizeArray
 import           System.Random (randomIO)
 import qualified System.Random as R
-import ConnectPoint (connectPoint)
 
 initGUI :: CInt -> CInt -> IO (Renderer, Manager)
 initGUI w h = do
@@ -79,6 +80,7 @@ renderAll render manager = do
   createRooms
   floodFill
   connectPoint
+  antiCarve
 
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
@@ -91,6 +93,7 @@ renderAll render manager = do
             createRooms
             floodFill
             connectPoint
+            antiCarve
 
           _ -> return ()
   let go = do
