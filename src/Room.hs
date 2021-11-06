@@ -29,7 +29,11 @@ import           SizeArray
 import           System.Random (randomIO)
 import qualified System.Random as R
 
-data Block = Empty | Full deriving (Show, Eq)
+data Block
+  = Empty
+  | Full
+  | Road
+  deriving (Show, Eq)
 
 type family IsOdd' (a :: Nat) :: Constraint where
   IsOdd' 0 = TypeError (Text "need Odd, but input is Even" )
@@ -38,7 +42,7 @@ type family IsOdd' (a :: Nat) :: Constraint where
 
 type IsOdd a = (KnownNat a, IsOdd' a)
 
-cb = [(3,10), (5,10), (7,4), (15, 1), (25, 1)] :: [(Int,Int)]
+cb = [(3,10), (5,10), (7,4), (15, 1), (25, 10)] :: [(Int,Int)]
 
 createA :: [(Int,Int)] -> (Int, A.Array Int Int)
 createA input =
@@ -118,6 +122,7 @@ b2b False = Full
 b2c :: Block -> Char
 b2c Empty = '_'
 b2c Full  = '*'
+b2c Road  = '.'
 
 rungen :: IO ()
 rungen = do

@@ -14,6 +14,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
+{-# LANGUAGE LambdaCase #-}
 module Front where
 
 import           SDL
@@ -32,6 +33,7 @@ import qualified Data.Text as T
 import           Foreign.C.Types (CInt)
 import           GHC.TypeLits
 import           Room
+import           FloodFill
 import           SDL.Font as SF
 import           SDL.Framerate
 import           SDL.Primitive
@@ -73,6 +75,7 @@ renderAll :: forall width height sig m.
 renderAll render manager = do
 
   createRooms
+  floodFill
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
       handler event =
@@ -82,6 +85,7 @@ renderAll render manager = do
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeSpace _))) -> do
             sfor (\x y -> writeArray x y Empty)
             createRooms
+            floodFill
           _ -> return ()
   let go = do
          events <- liftIO pollEvents
@@ -89,34 +93,42 @@ renderAll render manager = do
 
          rendererDrawColor render $= V4 255 255 255 255
          clear render
-         rendererDrawColor render $= V4 0 0 255 255
+
 
          sfor $ \x y -> do
-             v <- readArray x y
-             when (v == Full) $ do
-               drawRect render
-                     (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
-                                       (fromIntegral y * blockWidth)))
-                                       (V2 blockWidth blockWidth) ))
+             readArray x y >>= \case
+               Empty -> pure ()
+               Road -> do
+                    rendererDrawColor render $= V4 155 100 0 255
+                    drawRect render
+                          (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                            (fromIntegral y * blockWidth)))
+                                            (V2 blockWidth blockWidth) ))
+               Full -> do
+                    rendererDrawColor render $= V4 0 0 255 255
+                    drawRect render
+                          (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                            (fromIntegral y * blockWidth)))
+                                            (V2 blockWidth blockWidth) ))
          present render
          delay_ manager
          go
   go
 
 
-blockWidth = 8 :: CInt
+blockWidth = 10 :: CInt
 
 rungen :: IO ()
 rungen = do
-  let w = 269 -- natVal @width Proxy
-      h = 169 --  natVal @height Proxy
+  let w = 209 -- natVal @width Proxy
+      h = 109 --  natVal @height Proxy
   (render, manager) <- initGUI (fromIntegral w * blockWidth) (fromIntegral h * blockWidth)
 
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
 
   r <- randomIO
   runRandom (R.mkStdGen r) $ runArray' arr $ runError @Skip $ do
-    renderAll @269 @169 render manager
+    renderAll @209 @109 render manager
   SDL.quit
   return ()
 
