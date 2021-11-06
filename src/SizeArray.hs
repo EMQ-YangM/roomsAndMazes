@@ -70,3 +70,13 @@ runArray e fun = do
       h = natVal @height Proxy
   arr <- liftIO $ A.newArray ((0,0), (fromIntegral w - 1, fromIntegral  h - 1)) e
   runReader arr . runArrayC . runLabelled $ fun
+
+runArray' :: forall m e width height a sym.
+            (MonadIO m,
+             KnownNat height,
+             KnownNat width)
+         => A.IOArray (Int, Int) e
+         -> Labelled SizeArray (ArrayC width height e) m a
+         -> m a
+runArray' arr fun = do
+  runReader arr . runArrayC . runLabelled $ fun
