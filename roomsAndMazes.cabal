@@ -19,8 +19,7 @@ maintainer:         yangm@emqx.io
 extra-source-files: CHANGELOG.md
 
 library
-    exposed-modules:  MyLib
-                    , Control.Effect.Array
+    exposed-modules:  Control.Effect.Array
                     , Control.Carrier.Array.IO
                     , Room
                     , Front

@@ -80,9 +80,7 @@ renderAll render manager = do
           QuitEvent -> throwError Skip
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeEscape _))) -> throwError Skip
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeSpace _))) -> do
-            forM_ [0..h-1] $ \y -> do
-              forM [0..w-1] $ \x -> do
-                writeArray x y Empty
+            sfor (\x y -> writeArray x y Empty)
             createRooms
           _ -> return ()
   let go = do
@@ -92,12 +90,13 @@ renderAll render manager = do
          rendererDrawColor render $= V4 255 255 255 255
          clear render
          rendererDrawColor render $= V4 0 0 255 255
-         forM_ [0..h-1] $ \y -> do
-           forM [0..w-1] $ \x -> do
+
+         sfor $ \x y -> do
              v <- readArray x y
              when (v == Full) $ do
-               drawRect render (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
-                                                    (fromIntegral y * blockWidth)))
+               drawRect render
+                     (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                       (fromIntegral y * blockWidth)))
                                        (V2 blockWidth blockWidth) ))
          present render
          delay_ manager
