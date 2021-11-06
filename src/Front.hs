@@ -78,6 +78,7 @@ renderAll render manager = do
       handler event =
         case eventPayload event of
           QuitEvent -> throwError Skip
+          (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeEscape _))) -> throwError Skip
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeSpace _))) -> do
             forM_ [0..h-1] $ \y -> do
               forM [0..w-1] $ \x -> do
