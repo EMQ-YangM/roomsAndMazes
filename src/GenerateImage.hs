@@ -57,7 +57,6 @@ createAll :: forall width height sig m.
               HasLabelled SizeArray (SizeArray width height Block) sig m,
               Has (Random :+: Error Skip
                           :+: State CPSet
-                          :+: State RoomCounter
                   ) sig m,
               MonadIO m)
           => m ()
@@ -95,10 +94,10 @@ rungen = do
   runRandom (R.mkStdGen r)
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
-    $ runState (RoomCounter 0)
-    $ runError @Skip $ do
-    createAll @2011
-              @2011
+    $ runError @Skip
+    $ do
+      createAll @2011
+                @2011
   newArr <- unsafeFreezeIOArray arr
   let img = generateImage @Pixel8 (\x y -> t $ newArr A.! (x, y))  w h
   writeBitmap "bigMap.bmp" img

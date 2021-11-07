@@ -35,3 +35,11 @@ connect point: 8.465904958s
 span tree: 11.757913003s
 anti carve: 14.411181388s
 70.557373927s
+
+remove more stack ..
+create rooms: 4.139203762s
+flood fill: 21.777865274s
+connect point: 5.780970116s
+span tree: 9.18350775s
+anti carve: 10.638029868s
+51.644708853s

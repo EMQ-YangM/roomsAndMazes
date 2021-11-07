@@ -41,12 +41,6 @@ data Block
   | Span
   deriving (Show, Eq)
 
-newtype RoomCounter
-  = RoomCounter { _roomCounter :: Int }
-  deriving (Show)
-
-makeLenses ''RoomCounter
-
 type family IsOdd' (a :: Nat) :: Constraint where
   IsOdd' 0 = TypeError (Text "need Odd, but input is Even" )
   IsOdd' 1 = ()
@@ -67,7 +61,7 @@ data Skip = Skip deriving (Eq, Show)
 createRooms :: forall width height sig m.
                 (IsOdd width, IsOdd height,
                  HasLabelled SizeArray (SizeArray width height Block) sig m,
-                 Has (Random :+: Error Skip :+: State RoomCounter) sig m,
+                 Has (Random :+: Error Skip) sig m,
                  MonadIO m)
              => m ()
 createRooms = do
@@ -75,6 +69,7 @@ createRooms = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
+      -- maxCycle = 1000
       maxCycle = 1000000
 
       (oneS', oneWB) = createA cb
@@ -111,8 +106,6 @@ createRooms = do
                       v <- readArray (startX + x) (startY + y)
                       when (v == Full) (throwError Skip)
 
-                  -- count room
-                  roomCounter %= (+1)
 
                   forM_ [0 .. roomH -1] $ \y ->
                     forM_ [0 .. roomW -1] $ \x ->

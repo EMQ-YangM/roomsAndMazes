@@ -69,13 +69,12 @@ initGUI w h = do
   SDL.Framerate.set fm 60
   return (renderer, fm)
 
-
+{-# INLINE renderAll #-}
 renderAll :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
               Has (Random :+: Error Skip
                           :+: State CPSet
-                          :+: State RoomCounter
                           :+: State Bool
                   ) sig m,
               MonadIO m)
@@ -101,7 +100,6 @@ renderAll render manager = do
 
             sfor (\x y -> writeArray x y Empty)
             cpSet .= Set.empty
-            roomCounter .= 0
 
             createRooms
             floodFill
@@ -176,10 +174,10 @@ rungen = do
   runRandom (R.mkStdGen r)
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
-    $ runState (RoomCounter 0)
     $ runState False
-    $ runError @Skip $ do
-    renderAll @161 @89 render manager
+    $ runError @Skip
+    $ do
+      renderAll @161 @89 render manager
   SDL.quit
   return ()
 
