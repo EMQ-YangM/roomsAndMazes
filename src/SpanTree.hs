@@ -71,7 +71,11 @@ spanTree = do
             cps <- use cpSet
             if Set.member p cps
               then do
-                writeArray px py Empty
+                i <- uniformR (1, 100)
+                if i < (10 :: Int)
+                  then writeArray px py Span
+                  else writeArray px py Empty
+                -- writeArray px py Empty
                 cpSet %= Set.delete p
               else cpSet %= Set.insert p
           _    -> pure ()
@@ -103,7 +107,10 @@ spanTree = do
             cps <- use cpSet
             if Set.member p cps
               then do
-                writeArray px py Empty
+                i <- uniformR (1, 100)
+                if i < (10 :: Int)
+                  then writeArray px py Span
+                  else writeArray px py Empty
                 cpSet %= Set.delete p
               else cpSet %= Set.insert p
           _ -> pure ()
