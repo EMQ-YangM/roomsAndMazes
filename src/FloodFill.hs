@@ -34,6 +34,8 @@ import           System.Random (mkStdGen, randomIO)
 import qualified System.Random as R
 
 dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
+{-# INLINE dr #-}
+
 
 ddd :: (Int, Int) -> [((Int, Int),[(Int, Int)])]
 ddd (x, y) =
@@ -42,8 +44,9 @@ ddd (x, y) =
   , ((x-1, y), [(x, y+1), (x, y-1), (x-1, y), (x-1, y+1), (x-1, y-1)])  -- left
   , ((x, y+1), [(x+1, y), (x-1, y), (x, y+1), (x+1, y+1), (x-1, y+1)])  -- up
   ]
+{-# INLINE ddd #-}
 
-
+{-# INLINE checkValue #-}
 checkValue :: forall width height sig m.
               (IsOdd width, IsOdd height,
                HasLabelled SizeArray (SizeArray width height Block) sig m,

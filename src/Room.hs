@@ -75,7 +75,7 @@ createRooms = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-      maxCycle = 200000
+      maxCycle = 1000000
 
       (oneS', oneWB) = createA cb
 
