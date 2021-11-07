@@ -1,6 +1,6 @@
 * rooms and mazes
 ** 原文链接 https://indienova.com/indie-game-development/rooms-and-mazes-a-procedural-dungeon-generator/
-   1. 编译需要安sdl2, sdl2-gfx, sdl2-ttf
+   1. 编译需要: sdl2, sdl2-gfx, sdl2-ttf
    2. 运行代码 cabal run roomsAndMazes， 按空格建生成新的地图
 ** 五阶段效果如下
 *** 随机生成房间
