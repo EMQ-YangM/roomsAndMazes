@@ -123,32 +123,3 @@ createRooms = do
 
 
   go 0
-
-
-b2b :: Bool -> Block
-b2b True  = Empty
-b2b False = Full
-
-b2c :: Block -> Char
-b2c Empty     = '_'
-b2c Full      = '*'
-b2c Road      = '.'
-b2c ConnPoint = '+'
-b2c Span      = 's'
-
-rungen :: IO ()
-rungen = do
-  let w = 269 -- natVal @width Proxy
-      h = 79 --  natVal @height Proxy
-
-  arr <- liftIO $ A.newArray ((0,0), (fromIntegral w - 1, fromIntegral  h - 1)) Empty
-
-  let go = do
-        l <- getLine
-        r <- randomIO
-        forM_ [0..h-1] $ \y -> do
-          forM [0..w-1] $ \x -> do
-            A.writeArray arr (x,y) Empty
-        runRandom (R.mkStdGen r) $ runArray' arr $ runState (RoomCounter 0) $ runError @Skip (createRooms @269 @79)
-        go
-  go
