@@ -55,6 +55,7 @@ library
                     , containers >= 0.6
                     , JuicyPixels
                     , process
+                    , time
 
     hs-source-dirs:   src
     default-language: Haskell2010
@@ -73,7 +74,7 @@ executable roomsAndMazes
 
     hs-source-dirs:   app
     default-language: Haskell2010
-    ghc-options: -threaded
+    ghc-options: -fllvm
 
 test-suite roomsAndMazes-test
     default-language: Haskell2010

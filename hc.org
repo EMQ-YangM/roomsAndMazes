@@ -1,0 +1,37 @@
+101  1.025756675s
+201  1.340440701s
+301  2.023197361s
+401  3.173869209s
+501  4.703244474s
+601  6.689718256s
+1011 21.362233396s
+create rooms: 1.201360253s
+flood fill: 9.94334031s
+connect point: 2.347846163s
+span tree: 3.394948357s
+anti carve: 4.243143222s
+21.154878843s
+
+2011
+create rooms: 5.805182405s
+flood fill: 40.391420669s
+connect point: 10.576934317s
+span tree: 14.943143728s
+anti carve: 18.07857466s
+89.924898565s
+
+inline checkValue
+create rooms: 5.723679089s
+flood fill: 35.384671147s
+connect point: 10.224950365s
+span tree: 14.215310331s
+anti carve: 16.961255634s
+82.644101344s
+
+inline SizeArray
+create rooms: 5.000775513s
+flood fill: 30.791908388s
+connect point: 8.465904958s
+span tree: 11.757913003s
+anti carve: 14.411181388s
+70.557373927s

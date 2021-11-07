@@ -37,6 +37,7 @@ import           Data.Kind
 import           Data.Proxy
 import qualified Data.Set as Set
 import qualified Data.Text as T
+import           Data.Time
 import           Data.Word (Word8)
 import           FloodFill
 import           Foreign.C.Types (CInt)
@@ -61,31 +62,47 @@ createAll :: forall width height sig m.
               MonadIO m)
           => m ()
 createAll = do
-  createRooms
-  floodFill
-  connectPoint
-  spanTree
-  antiCarve
+  withTime "create rooms" createRooms
+  withTime "flood fill" floodFill
+  withTime "connect point" connectPoint
+  withTime "span tree" spanTree
+  withTime "anti carve" antiCarve
 
 t :: Block -> Word8
 t Span = 0
 t _    = 255
 
+withTime :: MonadIO m
+         => String
+         -> m ()
+         -> m ()
+withTime s f = do
+  t1 <- liftIO getCurrentTime
+  f
+  t2 <- liftIO getCurrentTime
+  liftIO $ putStrLn $ s ++ ": " ++ show (diffUTCTime t2 t1)
+
 rungen :: IO ()
 rungen = do
-  let w = 1161
-      h = 1189
+  let w = 2011
+      h = 2011
+
+  t1 <- getCurrentTime
 
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
-  r <- randomIO
+  -- r <- randomIO
+  let r = 10
   runRandom (R.mkStdGen r)
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
     $ runState (RoomCounter 0)
     $ runError @Skip $ do
-    createAll @1161 @1189
+    createAll @2011
+              @2011
   newArr <- unsafeFreezeIOArray arr
   let img = generateImage @Pixel8 (\x y -> t $ newArr A.! (x, y))  w h
   writeBitmap "bigMap.bmp" img
-  system "eog bigMap.bmp"
+  t2 <- getCurrentTime
+  print $ diffUTCTime t2 t1
+  -- system "eog bigMap.bmp"
   return ()

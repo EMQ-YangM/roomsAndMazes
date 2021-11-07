@@ -31,12 +31,15 @@ data SizeArray (width :: Nat) (height :: Nat) e (m :: Type -> Type) a where
   ReadArray :: Int -> Int -> SizeArray width height e m e
   WriteArray :: Int -> Int -> e -> SizeArray width height e m ()
 
+{-# INLINE readArray #-}
 readArray :: HasLabelled SizeArray (SizeArray width height e) sig m => Int -> Int -> m e
 readArray x y = sendLabelled @SizeArray (ReadArray x y)
 
+{-# INLINE writeArray #-}
 writeArray :: HasLabelled SizeArray (SizeArray width height e) sig m => Int -> Int -> e -> m ()
 writeArray x y e = sendLabelled @SizeArray (WriteArray x y e)
 
+{-# INLINE sfor #-}
 sfor :: forall width height sig m e sym.
         (HasLabelled SizeArray (SizeArray width height e) sig m,
          KnownNat width, KnownNat height)
@@ -57,7 +60,9 @@ instance (Algebra sig m, MonadIO m) => Algebra (SizeArray width height e :+: sig
     L (ReadArray x y)    -> ReaderC $ \arr -> liftIO (A.readArray arr (x, y)) <&> (<$ ctx)
     L (WriteArray x y e ) -> ReaderC $ \arr -> liftIO (A.writeArray arr (x, y) e) >> pure ctx
     R other     -> alg (runArrayC . hdl) (R other) ctx
+  {-# INLINE alg #-}
 
+{-# INLINE runArray #-}
 runArray :: forall m e width height a sym.
             (MonadIO m,
              KnownNat height,
@@ -71,6 +76,7 @@ runArray e fun = do
   arr <- liftIO $ A.newArray ((0,0), (fromIntegral w - 1, fromIntegral  h - 1)) e
   runReader arr . runArrayC . runLabelled $ fun
 
+{-# INLINE runArray' #-}
 runArray' :: forall m e width height a sym.
             (MonadIO m,
              KnownNat height,
