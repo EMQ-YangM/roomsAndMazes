@@ -17,7 +17,7 @@
 {-# LANGUAGE UndecidableInstances       #-}
 module Front where
 
-import           SDL
+import           SDL hiding (get)
 
 import           AntiCarve
 import           ConnectPoint
@@ -40,7 +40,7 @@ import           Foreign.C.Types (CInt)
 import           GHC.TypeLits
 import           Room
 import           SDL.Font as SF
-import           SDL.Framerate
+import           SDL.Framerate hiding (get)
 import           SDL.Primitive
 import           SizeArray
 import           SpanTree
@@ -66,14 +66,18 @@ initGUI w h = do
         }
   renderer <- createRenderer window (-1) defaultRenderer
   fm <- SDL.Framerate.manager
-  SDL.Framerate.set fm 5
+  SDL.Framerate.set fm 60
   return (renderer, fm)
 
 
 renderAll :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has (Random :+: Error Skip :+: State CPSet :+: State RoomCounter) sig m,
+              Has (Random :+: Error Skip
+                          :+: State CPSet
+                          :+: State RoomCounter
+                          :+: State Bool
+                  ) sig m,
               MonadIO m)
           => Renderer
           -> Manager
@@ -85,6 +89,7 @@ renderAll render manager = do
   connectPoint
   spanTree
   antiCarve
+  put True  -- is render ?
 
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
@@ -103,6 +108,7 @@ renderAll render manager = do
             connectPoint
             spanTree
             antiCarve
+            put True  -- is render ?
 
           _ -> return ()
   let go = do
@@ -110,41 +116,48 @@ renderAll render manager = do
          mapM_ handler events
 
          -- rendererDrawColor render $= V4 255 255 255 255
-         rendererDrawColor render $= V4 155 100 0 255
-         clear render
+         get >>= \case
+           False -> do
+                delay_ manager
+                go
+           True -> do
+                put False
+
+                rendererDrawColor render $= V4 155 100 0 255
+                clear render
 
 
-         sfor $ \x y -> do
-             readArray x y >>= \case
-               Empty -> pure ()
-               Road -> do
-                    rendererDrawColor render $= V4 0 0 0 255
-                    fillRect render
-                          (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
-                                            (fromIntegral y * blockWidth)))
-                                            (V2 blockWidth blockWidth) ))
-               Full -> do
-                    rendererDrawColor render $= V4 0 0 255 255
-                    drawRect render
-                          (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
-                                            (fromIntegral y * blockWidth)))
-                                            (V2 blockWidth blockWidth) ))
-               ConnPoint -> do
-                    rendererDrawColor render $= V4 255 255 255 255
-                    fillRect render
-                          (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
-                                            (fromIntegral y * blockWidth)))
-                                            (V2 blockWidth blockWidth) ))
-               Span -> do
-                    -- rendererDrawColor render $= V4 0 0 0 255
-                    rendererDrawColor render $= V4 100 155 255 255
-                    drawRect render
-                          (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
-                                            (fromIntegral y * blockWidth)))
-                                            (V2 blockWidth blockWidth) ))
-         present render
-         delay_ manager
-         go
+                sfor $ \x y -> do
+                    readArray x y >>= \case
+                      Empty -> pure ()
+                      Road -> do
+                           rendererDrawColor render $= V4 0 0 0 255
+                           fillRect render
+                                 (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                                   (fromIntegral y * blockWidth)))
+                                                   (V2 blockWidth blockWidth) ))
+                      Full -> do
+                           rendererDrawColor render $= V4 0 0 255 255
+                           drawRect render
+                                 (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                                   (fromIntegral y * blockWidth)))
+                                                   (V2 blockWidth blockWidth) ))
+                      ConnPoint -> do
+                           rendererDrawColor render $= V4 255 255 255 255
+                           fillRect render
+                                 (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                                   (fromIntegral y * blockWidth)))
+                                                   (V2 blockWidth blockWidth) ))
+                      Span -> do
+                           -- rendererDrawColor render $= V4 0 0 0 255
+                           rendererDrawColor render $= V4 100 155 255 255
+                           drawRect render
+                                 (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                                   (fromIntegral y * blockWidth)))
+                                                   (V2 blockWidth blockWidth) ))
+                present render
+                delay_ manager
+                go
   go
 
 
@@ -164,6 +177,7 @@ rungen = do
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
     $ runState (RoomCounter 0)
+    $ runState False
     $ runError @Skip $ do
     renderAll @161 @89 render manager
   SDL.quit
