@@ -8,6 +8,7 @@
 {-# LANGUAGE KindSignatures             #-}
 {-# LANGUAGE MultiParamTypeClasses      #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
+{-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeApplications           #-}
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
@@ -17,7 +18,9 @@ module Room where
 import           Control.Carrier.Error.Either
 import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
+import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
+import           Control.Effect.Optics ((%=))
 import           Control.Monad
 import           Control.Monad.IO.Class
 import qualified Data.Array as A
@@ -25,6 +28,7 @@ import qualified Data.Array.IO as A
 import           Data.Kind
 import           Data.Proxy
 import           GHC.TypeLits
+import           Optics (makeLenses)
 import           SizeArray
 import           System.Random (randomIO)
 import qualified System.Random as R
@@ -34,7 +38,14 @@ data Block
   | Full
   | Road
   | ConnPoint
+  | Span
   deriving (Show, Eq)
+
+newtype RoomCounter
+  = RoomCounter { _roomCounter :: Int }
+  deriving (Show)
+
+makeLenses ''RoomCounter
 
 type family IsOdd' (a :: Nat) :: Constraint where
   IsOdd' 0 = TypeError (Text "need Odd, but input is Even" )
@@ -56,7 +67,7 @@ data Skip = Skip deriving (Eq, Show)
 createRooms :: forall width height sig m.
                 (IsOdd width, IsOdd height,
                  HasLabelled SizeArray (SizeArray width height Block) sig m,
-                 Has (Random :+: Error Skip) sig m,
+                 Has (Random :+: Error Skip :+: State RoomCounter) sig m,
                  MonadIO m)
              => m ()
 createRooms = do
@@ -100,6 +111,9 @@ createRooms = do
                       v <- readArray (startX + x) (startY + y)
                       when (v == Full) (throwError Skip)
 
+                  -- count room
+                  roomCounter %= (+1)
+
                   forM_ [0 .. roomH -1] $ \y ->
                     forM_ [0 .. roomW -1] $ \x ->
                       writeArray (startX + x) (startY + y) Full
@@ -110,11 +124,6 @@ createRooms = do
 
   go 0
 
-  -- forM_ [0..h-1] $ \y -> do
-  --   ls <- forM [0..w-1] $ \x -> do
-  --     v <- readArray x y
-  --     return (b2c v)
-  --   liftIO $ putStrLn ls
 
 b2b :: Bool -> Block
 b2b True  = Empty
@@ -125,6 +134,7 @@ b2c Empty     = '_'
 b2c Full      = '*'
 b2c Road      = '.'
 b2c ConnPoint = '+'
+b2c Span      = 's'
 
 rungen :: IO ()
 rungen = do
@@ -139,6 +149,6 @@ rungen = do
         forM_ [0..h-1] $ \y -> do
           forM [0..w-1] $ \x -> do
             A.writeArray arr (x,y) Empty
-        runRandom (R.mkStdGen r) $ runArray' arr $ runError @Skip (createRooms @269 @79)
+        runRandom (R.mkStdGen r) $ runArray' arr $ runState (RoomCounter 0) $ runError @Skip (createRooms @269 @79)
         go
   go

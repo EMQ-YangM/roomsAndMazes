@@ -21,17 +21,19 @@ import           SDL
 
 import           AntiCarve
 import           ConnectPoint
-import           ConnectPoint (connectPoint)
 import           Control.Carrier.Error.Either
 import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
+import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
+import           Control.Effect.Optics ((%=), (.=))
 import           Control.Monad
 import           Control.Monad.IO.Class
 import qualified Data.Array as A
 import qualified Data.Array.IO as A
 import           Data.Kind
 import           Data.Proxy
+import qualified Data.Set as Set
 import qualified Data.Text as T
 import           FloodFill
 import           Foreign.C.Types (CInt)
@@ -41,6 +43,7 @@ import           SDL.Font as SF
 import           SDL.Framerate
 import           SDL.Primitive
 import           SizeArray
+import           SpanTree
 import           System.Random (randomIO)
 import qualified System.Random as R
 
@@ -70,7 +73,7 @@ initGUI w h = do
 renderAll :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has (Random :+: Error Skip) sig m,
+              Has (Random :+: Error Skip :+: State CPSet :+: State RoomCounter) sig m,
               MonadIO m)
           => Renderer
           -> Manager
@@ -80,6 +83,7 @@ renderAll render manager = do
   createRooms
   floodFill
   connectPoint
+  spanTree
   -- antiCarve
 
   let w = fromIntegral $ natVal @width Proxy
@@ -90,9 +94,13 @@ renderAll render manager = do
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeEscape _))) -> throwError Skip
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeSpace _))) -> do
             sfor (\x y -> writeArray x y Empty)
+            cpSet .= Set.empty
+            roomCounter .= 0
             createRooms
             floodFill
             connectPoint
+            spanTree
+            return ()
             -- antiCarve
 
           _ -> return ()
@@ -126,13 +134,19 @@ renderAll render manager = do
                           (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
                                             (fromIntegral y * blockWidth)))
                                             (V2 blockWidth blockWidth) ))
+               Span -> do
+                    rendererDrawColor render $= V4 0 0 0 255
+                    drawRect render
+                          (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
+                                            (fromIntegral y * blockWidth)))
+                                            (V2 blockWidth blockWidth) ))
          present render
          delay_ manager
          go
   go
 
 
-blockWidth = 20 :: CInt
+blockWidth = 10 :: CInt
 
 rungen :: IO ()
 rungen = do
@@ -143,7 +157,11 @@ rungen = do
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
 
   r <- randomIO
-  runRandom (R.mkStdGen r) $ runArray' arr $ runError @Skip $ do
+  runRandom (R.mkStdGen r)
+    $ runState @CPSet (CPSet Set.empty)
+    $ runArray' arr
+    $ runState (RoomCounter 0)
+    $ runError @Skip $ do
     renderAll @161 @89 render manager
   SDL.quit
   return ()
