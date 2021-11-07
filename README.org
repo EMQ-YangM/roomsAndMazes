@@ -1,18 +1,19 @@
 * rooms and mazes
-** https://indienova.com/indie-game-development/rooms-and-mazes-a-procedural-dungeon-generator/
+** 原文链接 https://indienova.com/indie-game-development/rooms-and-mazes-a-procedural-dungeon-generator/
+   编译需要安sdl2, sdl2-gfx, sdl2-ttf
 ** pictures
-
+*** 随机生成房间
 #+DOWNLOADED: screenshot @ 2021-11-07 14:26:08
 [[file:rooms_and_mazes/2021-11-07_14-26-08_screenshot.png]]
-
+*** 创建道路，充填空间
 #+DOWNLOADED: screenshot @ 2021-11-07 14:26:41
 [[file:rooms_and_mazes/2021-11-07_14-26-41_screenshot.png]]
-
+*** 找到所有连接点
 #+DOWNLOADED: screenshot @ 2021-11-07 14:27:16
 [[file:rooms_and_mazes/2021-11-07_14-27-16_screenshot.png]]
-
+*** 连接房间和道路
 #+DOWNLOADED: screenshot @ 2021-11-07 14:27:31
 [[file:rooms_and_mazes/2021-11-07_14-27-31_screenshot.png]]
-
+*** 移除死路
 #+DOWNLOADED: screenshot @ 2021-11-07 14:27:49
 [[file:rooms_and_mazes/2021-11-07_14-27-49_screenshot.png]]
