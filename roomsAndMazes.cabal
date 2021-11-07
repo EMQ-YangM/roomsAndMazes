@@ -31,6 +31,7 @@ library
                     , Shuffle
                     , GameOfLive.DoubleArray
                     , GameOfLive.Front
+                    , GenerateImage
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -52,6 +53,8 @@ library
                     , text
                     , stm
                     , containers >= 0.6
+                    , JuicyPixels
+                    , process
 
     hs-source-dirs:   src
     default-language: Haskell2010
