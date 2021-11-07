@@ -84,7 +84,7 @@ renderAll render manager = do
   floodFill
   connectPoint
   spanTree
-  -- antiCarve
+  antiCarve
 
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
@@ -93,15 +93,16 @@ renderAll render manager = do
           QuitEvent -> throwError Skip
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeEscape _))) -> throwError Skip
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeSpace _))) -> do
+
             sfor (\x y -> writeArray x y Empty)
             cpSet .= Set.empty
             roomCounter .= 0
+
             createRooms
             floodFill
             connectPoint
             spanTree
-            return ()
-            -- antiCarve
+            antiCarve
 
           _ -> return ()
   let go = do
@@ -135,7 +136,8 @@ renderAll render manager = do
                                             (fromIntegral y * blockWidth)))
                                             (V2 blockWidth blockWidth) ))
                Span -> do
-                    rendererDrawColor render $= V4 0 0 0 255
+                    -- rendererDrawColor render $= V4 0 0 0 255
+                    rendererDrawColor render $= V4 100 155 255 255
                     drawRect render
                           (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
                                             (fromIntegral y * blockWidth)))
@@ -157,6 +159,7 @@ rungen = do
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
 
   r <- randomIO
+  -- let r = 10
   runRandom (R.mkStdGen r)
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr

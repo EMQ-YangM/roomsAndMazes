@@ -48,19 +48,20 @@ antiCarve = do
 
       go (x, y) = do
         readArray x y >>= \case
-          Road -> do
+          Span -> do
+
             res <- forM dr $ \(dx, dy) -> do
               let nx = x+dx
                   ny = y+dy
               readArray nx ny >>= \case
-                Road  -> pure (0, [(nx, ny)])
                 Empty -> pure (1, [])
+                Span  -> pure (0, [(nx, ny)])
                 _     -> pure (0, [])
+
             let (a,b) = unzip res
-                bs = concat b
-            when (sum a == 4) $ writeArray x y Empty
+
             when (sum a == 3) $ do
-              case bs of
+              case concat b of
                 [kv] -> writeArray x y Empty >> go kv
                 _    -> pure ()
           _     -> pure ()

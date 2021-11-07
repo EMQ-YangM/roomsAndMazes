@@ -51,6 +51,7 @@ connectPoint = do
         Full      -> pure ()
         Road      -> pure ()
         ConnPoint -> pure ()
+        Span      -> pure ()
         Empty     -> do
           res <- forM dr $ \(dx, dy) -> do
             readArray (x+dx) (y+dy) >>= \case

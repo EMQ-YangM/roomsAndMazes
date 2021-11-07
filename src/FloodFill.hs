@@ -70,6 +70,7 @@ checkValue ps@(x, y) = do
                        Road      -> throwError Skip
                        Full      -> throwError Skip
                        ConnPoint -> throwError Skip
+                       Span      -> throwError Skip
 
                    pure [kk]
                ) (\_ -> pure [] )
