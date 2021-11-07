@@ -49,7 +49,7 @@ makeLenses ''CPSet
 spanTree :: forall width height sig m.
             (IsOdd width, IsOdd height,
              HasLabelled SizeArray (SizeArray width height Block) sig m,
-             Has (Random :+: Error Skip :+: State CPSet :+: State RoomCounter) sig m,
+             Has (Random :+: Error Skip :+: State CPSet) sig m,
              MonadIO m)
          => m ()
 spanTree = do
@@ -117,7 +117,6 @@ spanTree = do
 
   sp <- getStart
   fillFull sp
-  roomCounter %= (\x -> x - 1)
 
   let go = do
         cps <- use cpSet

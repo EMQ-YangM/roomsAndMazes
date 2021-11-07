@@ -37,14 +37,15 @@ dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
 {-# INLINE dr #-}
 
 
-ddd :: (Int, Int) -> [((Int, Int),[(Int, Int)])]
+ddd :: (Int, Int) -> [[(Int, Int)]]
 ddd (x, y) =
-  [ ((x+1, y), [(x, y+1), (x, y-1), (x+1, y), (x+1, y+1), (x+1, y-1)])   -- right
-  , ((x, y-1), [(x+1, y), (x-1, y), (x, y-1), (x+1, y-1), (x-1, y-1)])  -- down
-  , ((x-1, y), [(x, y+1), (x, y-1), (x-1, y), (x-1, y+1), (x-1, y-1)])  -- left
-  , ((x, y+1), [(x+1, y), (x-1, y), (x, y+1), (x+1, y+1), (x-1, y+1)])  -- up
+  [ [(x, y+1), (x, y-1), (x+1, y), (x+1, y+1), (x+1, y-1)]   -- right
+  , [(x+1, y), (x-1, y), (x, y-1), (x+1, y-1), (x-1, y-1)]  -- down
+  , [(x, y+1), (x, y-1), (x-1, y), (x-1, y+1), (x-1, y-1)]  -- left
+  , [(x+1, y), (x-1, y), (x, y+1), (x+1, y+1), (x-1, y+1)]  -- up
   ]
 {-# INLINE ddd #-}
+
 
 {-# INLINE checkValue #-}
 checkValue :: forall width height sig m.
@@ -53,7 +54,7 @@ checkValue :: forall width height sig m.
                Has (Random :+: Error Skip) sig m,
                MonadIO m)
            => (Int, Int)
-           -> m [(Int, Int)]
+           -> m Bool
 checkValue ps@(x, y) = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
@@ -63,22 +64,20 @@ checkValue ps@(x, y) = do
     then do
       cv <- readArray x y
       if cv /= Empty
-        then pure []
+        then pure False
         else do
-          res <- forM (ddd ps) $ \(kk, ks) -> do
-            catchError @Skip
-               (do forM_ ks $ \(kx, ky) ->
-                     readArray kx ky >>= \case
-                       Empty     -> pure ()
-                       Road      -> throwError Skip
-                       Full      -> throwError Skip
-                       ConnPoint -> throwError Skip
-                       Span      -> throwError Skip
-
-                   pure [kk]
-               ) (\_ -> pure [] )
-          pure $ concat res
-    else pure []
+            res <- forM (ddd ps) $ \ks ->
+              catchError @Skip (do
+                forM_ ks $ \(kx, ky) -> do
+                  readArray kx ky >>= \case
+                    Empty     -> pure ()
+                    Road      -> throwError Skip
+                    Full      -> throwError Skip
+                    ConnPoint -> throwError Skip
+                    Span      -> throwError Skip
+                pure True) (\_ -> pure False )
+            pure $ or res
+    else pure False
 
 floodFill :: forall width height sig m.
              (IsOdd width, IsOdd height,
@@ -93,9 +92,7 @@ floodFill = do
 
       go ss@(sx, sy) = do
         res <- checkValue ss
-        if null res
-          then pure ()
-          else do
+        when res $  do
             writeArray sx sy Road
             -- i <- uniform
             -- let ndr = shuffleSet (mkStdGen i) (Set.fromList dr)
@@ -103,10 +100,9 @@ floodFill = do
 
   forM_ [1, 3 .. h-1] $ \y -> do
     forM_ [1, 3 ..w-1] $ \x -> do
-      res <- checkValue (x, y)
-      if null res
-        then pure ()
-        else go (x, y)
+      go (x, y)
+      -- res <- checkValue (x, y)
+      -- when res $ go (x, y)
 
 
 
