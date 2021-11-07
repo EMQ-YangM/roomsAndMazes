@@ -46,6 +46,7 @@ import           SizeArray
 import           SpanTree
 import           System.Random (randomIO)
 import qualified System.Random as R
+import Data.Set (Set)
 
 initGUI :: CInt -> CInt -> IO (Renderer, Manager)
 initGUI w h = do
@@ -75,6 +76,7 @@ renderAll :: forall width height sig m.
               HasLabelled SizeArray (SizeArray width height Block) sig m,
               Has (Random :+: Error Skip
                           :+: State CPSet
+                          :+: State (Set (Int, Int))
                           :+: State Bool
                   ) sig m,
               MonadIO m)
@@ -100,6 +102,7 @@ renderAll render manager = do
 
             sfor (\x y -> writeArray x y Empty)
             cpSet .= Set.empty
+            put @(Set (Int, Int)) Set.empty
 
             createRooms
             floodFill
@@ -174,6 +177,7 @@ rungen = do
   runRandom (R.mkStdGen r)
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
+    $ runState @(Set (Int, Int)) Set.empty
     $ runState False
     $ runError @Skip
     $ do

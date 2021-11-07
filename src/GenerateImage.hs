@@ -35,6 +35,7 @@ import           Data.Array.Base (unsafeFreezeIOArray)
 import qualified Data.Array.IO as A
 import           Data.Kind
 import           Data.Proxy
+import           Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import           Data.Time
@@ -56,16 +57,18 @@ createAll :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
               Has (Random :+: Error Skip
-                          :+: State CPSet
+                          -- :+: State CPSet
+                          -- :+: State (Set (Int, Int))
                   ) sig m,
               MonadIO m)
           => m ()
 createAll = do
   withTime "create rooms" createRooms
-  withTime "flood fill" floodFill
+  (s, _) <- runState @(Set (Int, Int)) Set.empty $ withTime "flood fill" floodFill
   withTime "connect point" connectPoint
-  withTime "span tree" spanTree
-  -- withTime "anti carve" antiCarve
+  runState @CPSet (CPSet Set.empty) $ withTime "span tree" spanTree
+  runState s $ withTime "anti carve" antiCarve
+  return ()
 
 t :: Block -> Word8
 t Span  = 0
@@ -91,11 +94,12 @@ rungen = do
   t1 <- getCurrentTime
 
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
-  r <- randomIO
-  -- let r = 10
+  -- r <- randomIO
+  let r = 10
   runRandom (R.mkStdGen r)
-    $ runState @CPSet (CPSet Set.empty)
+    -- $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
+    -- $ runState @(Set (Int, Int)) Set.empty
     $ runError @Skip
     $ do
       createAll @2011
