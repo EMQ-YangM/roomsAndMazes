@@ -34,6 +34,7 @@ import           System.Random (mkStdGen, randomIO)
 import qualified System.Random as R
 
 dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
+-- dr = [(1,0), (-1,0), (0,1), (0, -1)] :: [(Int, Int)]
 {-# INLINE dr #-}
 
 
@@ -65,8 +66,8 @@ checkValue ps@(x, y) = do
       cv <- readArray x y
       if cv /= Empty
         then pure False
-        else do
-            res <- forM (ddd ps) $ \ks ->
+        else catchError @Skip  (do
+            forM_ (ddd ps) $ \ks ->
               catchError @Skip (do
                 forM_ ks $ \(kx, ky) -> do
                   readArray kx ky >>= \case
@@ -75,8 +76,11 @@ checkValue ps@(x, y) = do
                     Full      -> throwError Skip
                     ConnPoint -> throwError Skip
                     Span      -> throwError Skip
-                pure True) (\_ -> pure False )
-            pure $ or res
+                throwError SkipCM) (\case
+                                       Skip -> pure ()
+                                       SkipCM -> throwError Skip
+                                       SkipM _ -> error "never happened")
+            pure False) (\_ -> pure True)
     else pure False
 
 floodFill :: forall width height sig m.
@@ -94,16 +98,23 @@ floodFill = do
         res <- checkValue ss
         when res $  do
             writeArray sx sy Road
+
             -- i <- uniform
             -- let ndr = shuffleSet (mkStdGen i) (Set.fromList dr)
-            forM_ [(sx + jx, sy + jy) | (jx,jy) <- dr] go
+
+            xs <- catchError @Skip (do forM_ [(sx + jx, sy + jy) | (jx,jy) <- dr] $ \x -> do
+                                         r <- checkValue x
+                                         when r $ throwError (SkipM x)
+                                       pure Nothing
+                                   ) (\(SkipM x) -> pure (Just x))
+
+            case xs of
+              Just x -> go x
+              Nothing -> pure ()
 
   forM_ [1, 3 .. h-1] $ \y -> do
     forM_ [1, 3 ..w-1] $ \x -> do
       go (x, y)
-      -- res <- checkValue (x, y)
-      -- when res $ go (x, y)
-
 
 
 

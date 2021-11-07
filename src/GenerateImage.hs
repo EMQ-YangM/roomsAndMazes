@@ -65,11 +65,13 @@ createAll = do
   withTime "flood fill" floodFill
   withTime "connect point" connectPoint
   withTime "span tree" spanTree
-  withTime "anti carve" antiCarve
+  -- withTime "anti carve" antiCarve
 
 t :: Block -> Word8
-t Span = 0
-t _    = 255
+t Span  = 0
+t Empty = 255
+t e     = error $ show e
+
 
 withTime :: MonadIO m
          => String
@@ -89,8 +91,8 @@ rungen = do
   t1 <- getCurrentTime
 
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
-  -- r <- randomIO
-  let r = 10
+  r <- randomIO
+  -- let r = 10
   runRandom (R.mkStdGen r)
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr

@@ -47,9 +47,6 @@ antiCarve = do
       h = fromIntegral $ natVal @height Proxy
 
       go (x, y) = do
-        readArray x y >>= \case
-          Span -> do
-
             res <- forM dr $ \(dx, dy) -> do
               let nx = x+dx
                   ny = y+dy
@@ -64,9 +61,12 @@ antiCarve = do
               case concat b of
                 [kv] -> writeArray x y Empty >> go kv
                 _    -> pure ()
-          _     -> pure ()
 
   forM_ [1 .. h-2] $ \y -> do
     forM_ [1 ..w-2] $ \x -> do
-      go (x, y)
+      r <- readArray x y
+      case r of
+        Road -> writeArray x y Empty
+        -- Span -> go (x, y)
+        _ -> pure ()
 

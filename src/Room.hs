@@ -56,7 +56,11 @@ createA input =
       is = concat [replicate b a | (a,b) <- input]
   in (all, A.array (0, all-1) (zip [0 ..] is))
 
-data Skip = Skip deriving (Eq, Show)
+data Skip
+  = Skip
+  | SkipCM
+  | SkipM (Int, Int)
+  deriving (Eq, Show)
 
 createRooms :: forall width height sig m.
                 (IsOdd width, IsOdd height,
@@ -69,8 +73,8 @@ createRooms = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-      -- maxCycle = 1000
-      maxCycle = 1000000
+      maxCycle = 1000
+      -- maxCycle = 1000000
 
       (oneS', oneWB) = createA cb
 
