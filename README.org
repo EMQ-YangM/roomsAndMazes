@@ -1,5 +1,18 @@
-* 生成地牢！
+* rooms and mazes
 ** https://indienova.com/indie-game-development/rooms-and-mazes-a-procedural-dungeon-generator/
-** create rooms
-  1. room size odd, global map size odd
-  2. flood fill
+** pictures
+
+#+DOWNLOADED: screenshot @ 2021-11-07 14:26:08
+[[file:rooms_and_mazes/2021-11-07_14-26-08_screenshot.png]]
+
+#+DOWNLOADED: screenshot @ 2021-11-07 14:26:41
+[[file:rooms_and_mazes/2021-11-07_14-26-41_screenshot.png]]
+
+#+DOWNLOADED: screenshot @ 2021-11-07 14:27:16
+[[file:rooms_and_mazes/2021-11-07_14-27-16_screenshot.png]]
+
+#+DOWNLOADED: screenshot @ 2021-11-07 14:27:31
+[[file:rooms_and_mazes/2021-11-07_14-27-31_screenshot.png]]
+
+#+DOWNLOADED: screenshot @ 2021-11-07 14:27:49
+[[file:rooms_and_mazes/2021-11-07_14-27-49_screenshot.png]]
