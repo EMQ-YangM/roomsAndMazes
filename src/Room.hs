@@ -122,16 +122,11 @@ createRooms = do
                       nw = roomW + 1
                       nh = roomH + 1
 
-                      t = [(nx + px, ny) | px <- [0 .. nw]]
-                          ++ [(nx + px, nh + ny) | px <- [0 .. nw]]
-                          ++ [(nx , ny + py) | py <- [0 .. nh]]
-                          ++ [(nw + nx , ny + py) | py <- [0 .. nh]]
-
-                  forM_ t $ \ti -> cpoints %= Set.insert ti
-
-                  forM_ [0 .. roomH -1] $ \y ->
-                    forM_ [0 .. roomW -1] $ \x ->
-                      writeArray (startX + x) (startY + y) Full
+                  forM_ [-1, 0 .. roomH] $ \y ->
+                    forM_ [-1, 0 .. roomW] $ \x ->
+                      if (x == -1) || (y == -1) || (x == roomW) || (y == roomH)
+                        then cpoints %= Set.insert (startX + x, startY + y)
+                        else writeArray (startX + x) (startY + y) Full
                   go (i + 1))
 
                 (\_ -> go (i + 1))
