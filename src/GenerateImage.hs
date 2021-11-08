@@ -98,8 +98,8 @@ withTime s f = do
 
 rungen :: IO ()
 rungen = do
-  let w = 2011
-      h = 2011
+  let w = 8011
+      h = 8011
 
   -- let w = 3841
   --     h = 3841
@@ -108,11 +108,11 @@ rungen = do
 
   -- arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
   vec <- liftIO $ V.replicate (fromIntegral $ w * h) Empty
-  -- r <- randomIO
-  let r = 10
+  r <- randomIO
+  -- let r = 10
   runArray' vec
-    $ createAll @2011
-                @2011
+    $ createAll @8011
+                @8011
                 r
   newArr <- unsafeFreeze vec
   let img = generateImage @Pixel8 (\x y -> t $ newArr ! (x + y * w))  w h

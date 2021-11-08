@@ -50,7 +50,7 @@ type family IsOdd' (a :: Nat) :: Constraint where
 
 type IsOdd a = (KnownNat a, IsOdd' a)
 
-cb = [(9,10), (5,10), (7,4), (15, 1), (25, 10)] :: [(Int,Int)]
+cb = [(9,10), (5,10), (7,4), (15, 1), (25, 1)] :: [(Int,Int)]
 
 createA :: [(Int,Int)] -> (Int, A.Array Int Int)
 createA input =
@@ -80,7 +80,7 @@ createRooms = do
       h = fromIntegral $ natVal @height Proxy
 
       maxCycle = 10000
-      -- maxCycle = 1000000
+      -- maxCycle = 10000000
 
       (oneS', oneWB) = createA cb
 

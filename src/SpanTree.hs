@@ -72,7 +72,7 @@ spanTree = do
             if Set.member p cps
               then do
                 i <- uniformR (1, 100)
-                if i < (7 :: Int)
+                if i < (3 :: Int)
                   then do
                     res <- forM dr $ \(dx, dy) -> do
                       readArray (px + dx) (py + dy) >>= \case
@@ -115,7 +115,7 @@ spanTree = do
             if Set.member p cps
               then do
                 i <- uniformR (1, 100)
-                if i < (7 :: Int)
+                if i < (3 :: Int)
                   then do -- writeArray px py Span
                     res <- forM dr $ \(dx, dy) -> do
                       readArray (px + dx) (py + dy) >>= \case
