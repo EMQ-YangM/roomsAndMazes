@@ -59,7 +59,8 @@ createAll :: forall width height sig m.
               MonadIO m)
           => Int -> m ()
 createAll gen = do
-  (gen1, _) <-runRandom (R.mkStdGen gen)
+  (gen1, (cp, _)) <-runRandom (R.mkStdGen gen)
+            $ runState (CPoints Set.empty)
             $ runError @Skip
             $ withTime "create rooms" createRooms
 
@@ -67,7 +68,7 @@ createAll gen = do
             $ runError @Skip
             $ withTime "flood fill" floodFill
 
-  withTime "connect point" connectPoint
+  withTime "connect point" (connectPoint cp)
 
   runRandom gen1
             $ runState @CPSet (CPSet Set.empty)

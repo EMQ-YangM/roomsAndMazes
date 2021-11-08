@@ -27,6 +27,8 @@ import qualified Data.Array as A
 import qualified Data.Array.IO as A
 import           Data.Kind
 import           Data.Proxy
+import           Data.Set (Set)
+import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Optics (makeLenses)
 import           SizeArray
@@ -62,10 +64,15 @@ data Skip
   | SkipM (Int, Int)
   deriving (Eq, Show)
 
+newtype CPoints
+  = CPoints { _cpoints :: Set (Int, Int) }
+
+makeLenses ''CPoints
+
 createRooms :: forall width height sig m.
                 (IsOdd width, IsOdd height,
                  HasLabelled SizeArray (SizeArray width height Block) sig m,
-                 Has (Random :+: Error Skip) sig m)
+                 Has (Random :+: Error Skip :+: State CPoints) sig m)
              => m ()
 createRooms = do
 
@@ -109,6 +116,18 @@ createRooms = do
                       v <- readArray (startX + x) (startY + y)
                       when (v == Full) (throwError Skip)
 
+                  let nx = startX - 1
+                      ny = startY - 1
+
+                      nw = roomW + 1
+                      nh = roomH + 1
+
+                      t = [(nx + px, ny) | px <- [0 .. nw]]
+                          ++ [(nx + px, nh + ny) | px <- [0 .. nw]]
+                          ++ [(nx , ny + py) | py <- [0 .. nh]]
+                          ++ [(nw + nx , ny + py) | py <- [0 .. nh]]
+
+                  forM_ t $ \ti -> cpoints %= Set.insert ti
 
                   forM_ [0 .. roomH -1] $ \y ->
                     forM_ [0 .. roomW -1] $ \x ->

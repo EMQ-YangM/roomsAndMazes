@@ -33,6 +33,7 @@ import qualified Data.Array as A
 import qualified Data.Array.IO as A
 import           Data.Kind
 import           Data.Proxy
+import           Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import           FloodFill
@@ -46,7 +47,6 @@ import           SizeArray
 import           SpanTree
 import           System.Random (randomIO)
 import qualified System.Random as R
-import Data.Set (Set)
 
 initGUI :: CInt -> CInt -> IO (Renderer, Manager)
 initGUI w h = do
@@ -78,6 +78,7 @@ renderAll :: forall width height sig m.
                           :+: State CPSet
                           :+: State (Set (Int, Int))
                           :+: State Bool
+                          :+: State CPoints
                   ) sig m,
               MonadIO m)
           => Renderer
@@ -87,7 +88,8 @@ renderAll render manager = do
 
   createRooms
   floodFill
-  connectPoint
+  cp <- get @CPoints
+  connectPoint cp
   spanTree
   antiCarve
   put True  -- is render ?
@@ -103,10 +105,12 @@ renderAll render manager = do
             sfor (\x y -> writeArray x y Empty)
             cpSet .= Set.empty
             put @(Set (Int, Int)) Set.empty
+            put (CPoints Set.empty)
 
             createRooms
             floodFill
-            connectPoint
+            cp <- get @CPoints
+            connectPoint cp
             spanTree
             antiCarve
             put True  -- is render ?
@@ -178,6 +182,7 @@ rungen = do
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
     $ runState @(Set (Int, Int)) Set.empty
+    $ runState (CPoints Set.empty)
     $ runState False
     $ runError @Skip
     $ do

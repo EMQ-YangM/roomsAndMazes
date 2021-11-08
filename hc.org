@@ -77,3 +77,11 @@ connect point: 5.227253864s
 span tree: 7.72483248s
 anti carve: 2.371652973s
 21.07927973s
+
+-- record edge point
+create rooms: 6.614998985s
+flood fill: 2.768963481s
+connect point: 0.724576677s
+span tree: 7.663713351s
+anti carve: 2.38122085s
+20.246972052s

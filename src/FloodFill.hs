@@ -75,7 +75,6 @@ dt2 ps@(x, y) dir@(dx, dy) = do
            _     -> pure False
     else pure False
 
-
 dirFill :: forall width height sig m.
               (IsOdd width, IsOdd height,
                HasLabelled SizeArray (SizeArray width height Block) sig m,
