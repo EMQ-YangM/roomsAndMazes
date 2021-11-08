@@ -70,3 +70,10 @@ anti carve: 2.078983906s
 21.417890295s
 
 
+-- new floodFill
+create rooms: 3.21611493s
+flood fill: 2.448810853s
+connect point: 5.227253864s
+span tree: 7.72483248s
+anti carve: 2.371652973s
+21.07927973s

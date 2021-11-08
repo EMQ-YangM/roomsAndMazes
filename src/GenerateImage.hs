@@ -95,20 +95,20 @@ withTime s f = do
 
 rungen :: IO ()
 rungen = do
-  -- let w = 2011
-  --     h = 2011
+  let w = 2011
+      h = 2011
 
-  let w = 3841
-      h = 3841
+  -- let w = 3841
+  --     h = 3841
 
   t1 <- getCurrentTime
 
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
-  r <- randomIO
-  -- let r = 10
+  -- r <- randomIO
+  let r = 10
   runArray' arr
-    $ createAll @3841
-                @3841
+    $ createAll @2011
+                @2011
                 r
   newArr <- unsafeFreezeIOArray arr
   let img = generateImage @Pixel8 (\x y -> t $ newArr A.! (x, y))  w h

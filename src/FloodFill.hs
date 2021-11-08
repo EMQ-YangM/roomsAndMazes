@@ -36,17 +36,6 @@ import           System.Random (mkStdGen, randomIO)
 import qualified System.Random as R
 
 dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
-{-# INLINE dr #-}
-
-
-ddd :: (Int, Int) -> [[(Int, Int)]]
-ddd (x, y) =
-  [ [(x, y+1), (x, y-1), (x+1, y), (x+1, y+1), (x+1, y-1)]   -- right
-  , [(x+1, y), (x-1, y), (x, y-1), (x+1, y-1), (x-1, y-1)]  -- down
-  , [(x, y+1), (x, y-1), (x-1, y), (x-1, y+1), (x-1, y-1)]  -- left
-  , [(x+1, y), (x-1, y), (x, y+1), (x+1, y+1), (x-1, y+1)]  -- up
-  ]
-{-# INLINE ddd #-}
 
 checkStartPoint :: forall width height sig m.
                    (IsOdd width, IsOdd height,
@@ -64,40 +53,56 @@ checkStartPoint ps@(x, y) = do
     _ -> pure False
 
 
-{-# INLINE checkValue #-}
-checkValue :: forall width height sig m.
-              (IsOdd width, IsOdd height,
-               HasLabelled SizeArray (SizeArray width height Block) sig m,
-               Has (Error Skip) sig m,
-               MonadIO m)
-           => (Int, Int)
-           -> m Bool
-checkValue ps@(x, y) = do
+{-# INLINE dt2 #-}
+dt2 :: forall width height sig m.
+       (IsOdd width, IsOdd height,
+        HasLabelled SizeArray (SizeArray width height Block) sig m,
+        MonadIO m)
+    => (Int, Int)   -- start point
+    -> (Int, Int)   -- dir dx dy
+    -> m Bool
+dt2 ps@(x, y) dir@(dx, dy) = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-  if x > 0 && x < w-1 &&
-     y > 0 && y < h-1
-    then do
-      cv <- readArray x y
-      if cv /= Empty
-        then pure False
-        else catchError @Skip  (do
-            forM_ (ddd ps) $ \ks ->
-              catchError @Skip (do
-                forM_ ks $ \(kx, ky) -> do
-                  readArray kx ky >>= \case
-                    Empty     -> pure ()
-                    Road      -> throwError Skip
-                    Full      -> throwError Skip
-                    ConnPoint -> throwError Skip
-                    Span      -> throwError Skip
-                throwError SkipCM) (\case
-                                       Skip    -> pure ()
-                                       SkipCM  -> throwError Skip
-                                       SkipM _ -> error "never happened")
-            pure False) (\_ -> pure True)
+      nx = x + dx * 2
+      ny = y + dy * 2
+
+  if nx >= 0 && nx <= w-1 &&
+     ny >= 0 && ny <= h-1
+    then readArray nx ny >>= \case
+           Empty -> pure True
+           _     -> pure False
     else pure False
+
+
+dirFill :: forall width height sig m.
+              (IsOdd width, IsOdd height,
+               HasLabelled SizeArray (SizeArray width height Block) sig m,
+               Has (State (Set (Int, Int))) sig m,
+               -- Has (Error Skip :+: State [((Int, Int), (Int, Int))]) sig m,
+               MonadIO m)
+           => (Int, Int)   -- start point
+           -> (Int, Int)   -- dir dx dy
+           -> m ()
+dirFill ps@(x, y) dir@(dx, dy) = do
+  let w = fromIntegral $ natVal @width Proxy
+      h = fromIntegral $ natVal @height Proxy
+
+  writeArray x y Road
+  dt2 ps dir >>= \case
+    True  -> dirFill (x + dx, y + dy) (dx, dy)
+    False -> do
+      let rx = dy
+          ry = dx
+
+      dt2 ps (rx, ry) >>= \case
+        True  -> dirFill (x + rx, y + ry) (rx, ry)
+        False -> pure ()
+
+      dt2 ps (-rx, -ry) >>= \case
+        True  -> dirFill (x - rx, y - ry) (-rx, -ry)
+        False -> modify (Set.insert (x, y))
 
 floodFill :: forall width height sig m.
              (IsOdd width, IsOdd height,
@@ -110,25 +115,13 @@ floodFill = do
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-      go s@(sx, sy) = do
-           writeArray sx sy Road
-           xs <- catchError @Skip
-             (do forM_ [(sx + jx, sy + jy) | (jx,jy) <- dr] $ \x -> do
-                   r <- checkValue x
-                   when r $ throwError (SkipM x)
-                 pure Nothing
-             ) (\(SkipM x) -> pure (Just x))
-           case xs of
-             Just x  -> go x
-             Nothing -> modify (Set.insert s) >> pure ()
-
   forM_ [1, 3 .. h-1] $ \y -> do
     forM_ [1, 3 ..w-1] $ \x -> do
       checkStartPoint (x, y) >>= \case
         False -> pure ()
         True -> do
           modify (Set.insert (x, y))
-          go (x, y)
+          dirFill (x, y) (1, 0)
 
 
 

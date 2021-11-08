@@ -73,7 +73,7 @@ createRooms = do
       h = fromIntegral $ natVal @height Proxy
 
       maxCycle = 10000
-      -- maxCycle = 4000000
+      -- maxCycle = 1000000
 
       (oneS', oneWB) = createA cb
 
