@@ -72,8 +72,15 @@ spanTree = do
             if Set.member p cps
               then do
                 i <- uniformR (1, 100)
-                if i < (10 :: Int)
-                  then writeArray px py Span
+                if i < (7 :: Int)
+                  then do
+                    res <- forM dr $ \(dx, dy) -> do
+                      readArray (px + dx) (py + dy) >>= \case
+                        Span -> pure 1
+                        _    -> pure 0
+                    if sum res < 3
+                      then writeArray px py Span
+                      else writeArray px py Empty
                   else writeArray px py Empty
                 -- writeArray px py Empty
                 cpSet %= Set.delete p
@@ -108,8 +115,16 @@ spanTree = do
             if Set.member p cps
               then do
                 i <- uniformR (1, 100)
-                if i < (10 :: Int)
-                  then writeArray px py Span
+                if i < (7 :: Int)
+                  then do -- writeArray px py Span
+                    res <- forM dr $ \(dx, dy) -> do
+                      readArray (px + dx) (py + dy) >>= \case
+                        Span -> pure 1
+                        _    -> pure 0
+                    if sum res < 3
+                      then writeArray px py Span
+                      else writeArray px py Empty
+
                   else writeArray px py Empty
                 cpSet %= Set.delete p
               else cpSet %= Set.insert p

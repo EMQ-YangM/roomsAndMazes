@@ -56,20 +56,25 @@ import qualified System.Random as R
 createAll :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has Random -- :+: Error Skip
-                          -- :+: State CPSet
-                          -- :+: State (Set (Int, Int))
-                   sig m,
               MonadIO m)
-          => m ()
-createAll = do
-  runError @Skip $ withTime "create rooms" createRooms
+          => Int -> m ()
+createAll gen = do
+  (gen1, _) <-runRandom (R.mkStdGen gen)
+            $ runError @Skip
+            $ withTime "create rooms" createRooms
+
   (s, _) <- runState @(Set (Int, Int)) Set.empty
             $ runError @Skip
             $ withTime "flood fill" floodFill
+
   withTime "connect point" connectPoint
-  runState @CPSet (CPSet Set.empty) $ withTime "span tree" spanTree
+
+  runRandom gen1
+            $ runState @CPSet (CPSet Set.empty)
+            $ withTime "span tree" spanTree
+
   runState s $ withTime "anti carve" antiCarve
+
   return ()
 
 t :: Block -> Word8
@@ -90,26 +95,24 @@ withTime s f = do
 
 rungen :: IO ()
 rungen = do
-  let w = 2011
-      h = 2011
+  -- let w = 2011
+  --     h = 2011
+
+  let w = 3841
+      h = 3841
 
   t1 <- getCurrentTime
 
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
-  -- r <- randomIO
-  let r = 10
+  r <- randomIO
+  -- let r = 10
   runArray' arr
-    -- $ runState @CPSet (CPSet Set.empty)
-    -- $ runState @(Set (Int, Int)) Set.empty
-    -- $ runError @Skip
-    $ runRandom (R.mkStdGen r)
-    $ do
-      createAll @2011
-                @2011
+    $ createAll @3841
+                @3841
+                r
   newArr <- unsafeFreezeIOArray arr
   let img = generateImage @Pixel8 (\x y -> t $ newArr A.! (x, y))  w h
   writeBitmap "bigMap.bmp" img
   t2 <- getCurrentTime
   print $ diffUTCTime t2 t1
-  -- system "eog bigMap.bmp"
   return ()

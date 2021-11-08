@@ -111,16 +111,16 @@ floodFill = do
       h = fromIntegral $ natVal @height Proxy
 
       go s@(sx, sy) = do
-            writeArray sx sy Road
-            xs <- catchError @Skip (do forM_ [(sx + jx, sy + jy) | (jx,jy) <- dr] $ \x -> do
-                                         r <- checkValue x
-                                         when r $ throwError (SkipM x)
-                                       pure Nothing
-                                   ) (\(SkipM x) -> pure (Just x))
-
-            case xs of
-              Just x  -> go x
-              Nothing -> modify (Set.insert s) >> pure ()
+           writeArray sx sy Road
+           xs <- catchError @Skip
+             (do forM_ [(sx + jx, sy + jy) | (jx,jy) <- dr] $ \x -> do
+                   r <- checkValue x
+                   when r $ throwError (SkipM x)
+                 pure Nothing
+             ) (\(SkipM x) -> pure (Just x))
+           case xs of
+             Just x  -> go x
+             Nothing -> modify (Set.insert s) >> pure ()
 
   forM_ [1, 3 .. h-1] $ \y -> do
     forM_ [1, 3 ..w-1] $ \x -> do
