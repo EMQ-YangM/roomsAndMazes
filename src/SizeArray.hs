@@ -11,8 +11,7 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
-module SizeArray
-  where
+module SizeArray where
 
 import           Control.Carrier.Lift
 import           Control.Carrier.Reader
@@ -23,6 +22,8 @@ import qualified Data.Array.IO as A
 import           Data.Functor
 import           Data.Kind
 import           Data.Proxy
+import           Data.Vector.Mutable (IOVector)
+import qualified Data.Vector.Mutable as V
 import           GHC.TypeLits
 import qualified System.Random as R
 
@@ -52,14 +53,17 @@ sfor f = do
     forM_ [0..w-1] $ \x -> do
       f x y
 
-newtype ArrayC (width :: Nat) (height :: Nat) e m a = ArrayC { runArrayC :: ReaderC (A.IOArray (Int,Int) e) m a }
+newtype ArrayC (width :: Nat) (height :: Nat) e m a = ArrayC { runArrayC :: ReaderC (IOVector e) m a }
   deriving (Functor, Applicative , Monad , MonadIO )
 
-instance (Algebra sig m, MonadIO m) => Algebra (SizeArray width height e :+: sig) (ArrayC width height e m) where
-  alg hdl sig ctx = ArrayC $ case sig of
-    L (ReadArray x y)    -> ReaderC $ \arr -> liftIO (A.readArray arr (x, y)) <&> (<$ ctx)
-    L (WriteArray x y e ) -> ReaderC $ \arr -> liftIO (A.writeArray arr (x, y) e) >> pure ctx
-    R other     -> alg (runArrayC . hdl) (R other) ctx
+instance (Algebra sig m, MonadIO m, KnownNat width) => Algebra (SizeArray width height e :+: sig) (ArrayC width height e m) where
+  alg hdl sig ctx =
+    let w = natVal @width Proxy
+        -- h = natVal @height Proxy
+    in ArrayC $ case sig of
+      L (ReadArray x y)    -> ReaderC $ \arr -> liftIO (V.unsafeRead arr (x + y * fromIntegral w)) <&> (<$ ctx)
+      L (WriteArray x y e ) -> ReaderC $ \arr -> liftIO (V.unsafeWrite arr (x + y * fromIntegral w) e) >> pure ctx
+      R other     -> alg (runArrayC . hdl) (R other) ctx
   {-# INLINE alg #-}
 
 {-# INLINE runArray #-}
@@ -73,7 +77,7 @@ runArray :: forall m e width height a sym.
 runArray e fun = do
   let w = natVal @width Proxy
       h = natVal @height Proxy
-  arr <- liftIO $ A.newArray ((0,0), (fromIntegral w - 1, fromIntegral  h - 1)) e
+  arr <- liftIO $ V.replicate (fromIntegral $ w * h) e
   runReader arr . runArrayC . runLabelled $ fun
 
 {-# INLINE runArray' #-}
@@ -81,7 +85,7 @@ runArray' :: forall m e width height a sym.
             (MonadIO m,
              KnownNat height,
              KnownNat width)
-         => A.IOArray (Int, Int) e
+         => IOVector e
          -> Labelled SizeArray (ArrayC width height e) m a
          -> m a
 runArray' arr fun = do

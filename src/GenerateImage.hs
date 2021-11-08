@@ -39,6 +39,8 @@ import           Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import           Data.Time
+import           Data.Vector (unsafeFreeze, (!))
+import qualified Data.Vector.Mutable as V
 import           Data.Word (Word8)
 import           FloodFill
 import           Foreign.C.Types (CInt)
@@ -104,15 +106,16 @@ rungen = do
 
   t1 <- getCurrentTime
 
-  arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
+  -- arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
+  vec <- liftIO $ V.replicate (fromIntegral $ w * h) Empty
   -- r <- randomIO
   let r = 10
-  runArray' arr
+  runArray' vec
     $ createAll @2011
                 @2011
                 r
-  newArr <- unsafeFreezeIOArray arr
-  let img = generateImage @Pixel8 (\x y -> t $ newArr A.! (x, y))  w h
+  newArr <- unsafeFreeze vec
+  let img = generateImage @Pixel8 (\x y -> t $ newArr ! (x + y * w))  w h
   writeBitmap "bigMap.bmp" img
   t2 <- getCurrentTime
   print $ diffUTCTime t2 t1

@@ -93,3 +93,11 @@ connect point: 1.109496218s
 span tree: 7.785986281s
 anti carve: 2.386798155s
 19.056264627s
+
+-- use IOVector as backend, use more unsafe operate
+create rooms: 4.487440898s
+flood fill: 2.200093062s
+connect point: 0.94922425s
+span tree: 6.889984404s
+anti carve: 2.090438413s
+16.720999036s

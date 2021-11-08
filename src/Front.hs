@@ -36,6 +36,7 @@ import           Data.Proxy
 import           Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Text as T
+import qualified Data.Vector.Mutable as V
 import           FloodFill
 import           Foreign.C.Types (CInt)
 import           GHC.TypeLits
@@ -174,7 +175,8 @@ rungen = do
       h = 89 --  natVal @height Proxy
   (render, manager) <- initGUI (fromIntegral w * blockWidth) (fromIntegral h * blockWidth)
 
-  arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
+  -- arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
+  arr <- liftIO $ V.replicate (fromIntegral $ w * h) Empty
 
   r <- randomIO
   -- let r = 10
