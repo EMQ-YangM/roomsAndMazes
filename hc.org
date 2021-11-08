@@ -85,3 +85,11 @@ connect point: 0.724576677s
 span tree: 7.663713351s
 anti carve: 2.38122085s
 20.246972052s
+
+-- not use set
+create rooms: 5.077668798s
+flood fill: 2.552901711s
+connect point: 1.109496218s
+span tree: 7.785986281s
+anti carve: 2.386798155s
+19.056264627s

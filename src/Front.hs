@@ -105,7 +105,7 @@ renderAll render manager = do
             sfor (\x y -> writeArray x y Empty)
             cpSet .= Set.empty
             put @(Set (Int, Int)) Set.empty
-            put (CPoints Set.empty)
+            put (CPoints [])
 
             createRooms
             floodFill
@@ -182,7 +182,7 @@ rungen = do
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
     $ runState @(Set (Int, Int)) Set.empty
-    $ runState (CPoints Set.empty)
+    $ runState (CPoints [])
     $ runState False
     $ runError @Skip
     $ do

@@ -65,7 +65,7 @@ data Skip
   deriving (Eq, Show)
 
 newtype CPoints
-  = CPoints { _cpoints :: Set (Int, Int) }
+  = CPoints { _cpoints :: [(Int, Int)] }
 
 makeLenses ''CPoints
 
@@ -125,7 +125,7 @@ createRooms = do
                   forM_ [-1, 0 .. roomH] $ \y ->
                     forM_ [-1, 0 .. roomW] $ \x ->
                       if (x == -1) || (y == -1) || (x == roomW) || (y == roomH)
-                        then cpoints %= Set.insert (startX + x, startY + y)
+                        then cpoints %= ((startX + x, startY + y) :)
                         else writeArray (startX + x) (startY + y) Full
                   go (i + 1))
 

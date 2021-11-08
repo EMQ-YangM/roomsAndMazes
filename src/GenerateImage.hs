@@ -60,7 +60,7 @@ createAll :: forall width height sig m.
           => Int -> m ()
 createAll gen = do
   (gen1, (cp, _)) <-runRandom (R.mkStdGen gen)
-            $ runState (CPoints Set.empty)
+            $ runState (CPoints [])
             $ runError @Skip
             $ withTime "create rooms" createRooms
 

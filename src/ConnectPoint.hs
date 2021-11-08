@@ -58,7 +58,7 @@ connectPoint (CPoints s) = do
                       Road -> go (c + 1) p ls
                       _    -> go c p ls
 
-  forM_ (Set.toList s) $ \(x, y) -> do
+  forM_ s $ \(x, y) -> do
       readArray x y >>= \case
         Full      -> pure ()
         Road      -> pure ()
