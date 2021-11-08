@@ -51,7 +51,6 @@ ddd (x, y) =
 checkStartPoint :: forall width height sig m.
                    (IsOdd width, IsOdd height,
                     HasLabelled SizeArray (SizeArray width height Block) sig m,
-                    Has (Random :+: Error Skip) sig m,
                     MonadIO m)
                 => (Int, Int)
                 -> m Bool
@@ -69,7 +68,7 @@ checkStartPoint ps@(x, y) = do
 checkValue :: forall width height sig m.
               (IsOdd width, IsOdd height,
                HasLabelled SizeArray (SizeArray width height Block) sig m,
-               Has (Random :+: Error Skip) sig m,
+               Has (Error Skip) sig m,
                MonadIO m)
            => (Int, Int)
            -> m Bool
@@ -103,7 +102,7 @@ checkValue ps@(x, y) = do
 floodFill :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has (Random :+: Error Skip :+: State (Set (Int, Int))) sig m,
+              Has (Error Skip :+: State (Set (Int, Int))) sig m,
               MonadIO m)
           => m ()
 floodFill = do

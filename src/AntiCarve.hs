@@ -42,8 +42,7 @@ dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
 antiCarve :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has (Random :+: Error Skip :+: State (Set (Int, Int))) sig m,
-              MonadIO m)
+              Has (State (Set (Int, Int))) sig m)
           => m ()
 antiCarve = do
 

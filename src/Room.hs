@@ -65,16 +65,15 @@ data Skip
 createRooms :: forall width height sig m.
                 (IsOdd width, IsOdd height,
                  HasLabelled SizeArray (SizeArray width height Block) sig m,
-                 Has (Random :+: Error Skip) sig m,
-                 MonadIO m)
+                 Has (Random :+: Error Skip) sig m)
              => m ()
 createRooms = do
 
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-      maxCycle = 1000
-      -- maxCycle = 1000000
+      -- maxCycle = 10000
+      maxCycle = 1000000
 
       (oneS', oneWB) = createA cb
 

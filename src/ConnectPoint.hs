@@ -36,8 +36,7 @@ dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
 
 connectPoint :: forall width height sig m.
                 (IsOdd width, IsOdd height,
-                 HasLabelled SizeArray (SizeArray width height Block) sig m,
-                 MonadIO m)
+                 HasLabelled SizeArray (SizeArray width height Block) sig m)
              => m ()
 connectPoint = do
 

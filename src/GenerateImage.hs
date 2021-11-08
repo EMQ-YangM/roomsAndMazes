@@ -56,15 +56,17 @@ import qualified System.Random as R
 createAll :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has (Random :+: Error Skip
+              Has Random -- :+: Error Skip
                           -- :+: State CPSet
                           -- :+: State (Set (Int, Int))
-                  ) sig m,
+                   sig m,
               MonadIO m)
           => m ()
 createAll = do
-  withTime "create rooms" createRooms
-  (s, _) <- runState @(Set (Int, Int)) Set.empty $ withTime "flood fill" floodFill
+  runError @Skip $ withTime "create rooms" createRooms
+  (s, _) <- runState @(Set (Int, Int)) Set.empty
+            $ runError @Skip
+            $ withTime "flood fill" floodFill
   withTime "connect point" connectPoint
   runState @CPSet (CPSet Set.empty) $ withTime "span tree" spanTree
   runState s $ withTime "anti carve" antiCarve
@@ -96,11 +98,11 @@ rungen = do
   arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
   -- r <- randomIO
   let r = 10
-  runRandom (R.mkStdGen r)
+  runArray' arr
     -- $ runState @CPSet (CPSet Set.empty)
-    $ runArray' arr
     -- $ runState @(Set (Int, Int)) Set.empty
-    $ runError @Skip
+    -- $ runError @Skip
+    $ runRandom (R.mkStdGen r)
     $ do
       createAll @2011
                 @2011

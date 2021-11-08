@@ -52,3 +52,11 @@ connect point: 5.034142447s
 span tree: 7.024785623s
 anti carve: 2.585814568s
 26.235462391s
+
+-- change runRandom and runArray'
+create rooms: 2.811240816s
+flood fill: 6.954469679s
+connect point: 4.895473989s
+span tree: 5.501676626s
+anti carve: 2.248122258s
+22.4983431s
