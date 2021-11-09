@@ -77,7 +77,7 @@ renderAll :: forall width height sig m.
               HasLabelled SizeArray (SizeArray width height Block) sig m,
               Has (Random :+: Error Skip
                           :+: State CPSet
-                          :+: State (Set (Int, Int))
+                          :+: State FillStack
                           :+: State Bool
                           :+: State CPoints
                   ) sig m,
@@ -105,7 +105,7 @@ renderAll render manager = do
 
             sfor (\x y -> writeArray x y Empty)
             cpSet .= Set.empty
-            put @(Set (Int, Int)) Set.empty
+            put (FillStack [] Set.empty)
             put (CPoints [])
 
             createRooms
@@ -183,7 +183,7 @@ rungen = do
   runRandom (R.mkStdGen r)
     $ runState @CPSet (CPSet Set.empty)
     $ runArray' arr
-    $ runState @(Set (Int, Int)) Set.empty
+    $ runState (FillStack [] Set.empty)
     $ runState (CPoints [])
     $ runState False
     $ runError @Skip

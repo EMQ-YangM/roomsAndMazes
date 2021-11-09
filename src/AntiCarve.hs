@@ -22,6 +22,7 @@ import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
 import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
+import           Control.Effect.Optics (use)
 import           Control.Monad
 import           Control.Monad.IO.Class
 import qualified Data.Array as A
@@ -42,7 +43,7 @@ dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
 antiCarve :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has (State (Set (Int, Int))) sig m)
+              Has (State FillStack) sig m)
           => m ()
 antiCarve = do
 
@@ -60,7 +61,7 @@ antiCarve = do
               [(nx, ny)] -> writeArray x y Empty >> go (nx, ny)
               _          -> pure ()
 
-  ls <- Set.toList <$> get
+  ls <- Set.toList <$> use endPoint
   forM_ ls go
 
   forM_ [1 .. h-2] $ \y -> do

@@ -69,6 +69,14 @@ newtype CPoints
 
 makeLenses ''CPoints
 
+data FillStack
+  = FillStack
+  { _fillStack :: [((Int, Int), (Int, Int))]
+  , _endPoint  :: Set (Int, Int)
+  }
+
+makeLenses ''FillStack
+
 createRooms :: forall width height sig m.
                 (IsOdd width, IsOdd height,
                  HasLabelled SizeArray (SizeArray width height Block) sig m,
@@ -81,6 +89,7 @@ createRooms = do
 
       maxCycle = 10000
       -- maxCycle = 10000000
+      -- maxCycle = 1000000
 
       (oneS', oneWB) = createA cb
 

@@ -20,6 +20,7 @@ import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
 import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
+import           Control.Effect.Optics (use, (%=), (.=))
 import           Control.Monad
 import           Control.Monad.IO.Class
 import qualified Data.Array as A
@@ -53,6 +54,28 @@ checkStartPoint ps@(x, y) = do
     _ -> pure False
 
 
+{-# INLINE dt1 #-}
+dt1 :: forall width height sig m.
+       (IsOdd width, IsOdd height,
+        HasLabelled SizeArray (SizeArray width height Block) sig m,
+        MonadIO m)
+    => (Int, Int)   -- start point
+    -> (Int, Int)   -- dir dx dy
+    -> m Bool
+dt1 ps@(x, y) dir@(dx, dy) = do
+  let w = fromIntegral $ natVal @width Proxy
+      h = fromIntegral $ natVal @height Proxy
+
+      nx = x + dx
+      ny = y + dy
+
+  if nx >= 0 && nx <= w-1 &&
+     ny >= 0 && ny <= h-1
+    then readArray nx ny >>= \case
+           Empty -> pure True
+           _     -> pure False
+    else pure False
+
 {-# INLINE dt2 #-}
 dt2 :: forall width height sig m.
        (IsOdd width, IsOdd height,
@@ -75,38 +98,40 @@ dt2 ps@(x, y) dir@(dx, dy) = do
            _     -> pure False
     else pure False
 
+
 dirFill :: forall width height sig m.
               (IsOdd width, IsOdd height,
                HasLabelled SizeArray (SizeArray width height Block) sig m,
-               Has (State (Set (Int, Int))) sig m,
+               Has (State FillStack) sig m,
                -- Has (Error Skip :+: State [((Int, Int), (Int, Int))]) sig m,
                MonadIO m)
            => (Int, Int)   -- start point
            -> (Int, Int)   -- dir dx dy
            -> m ()
 dirFill ps@(x, y) dir@(dx, dy) = do
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
 
-  writeArray x y Road
-  dt2 ps dir >>= \case
-    True  -> dirFill (x + dx, y + dy) (dx, dy)
-    False -> do
-      let rx = dy
-          ry = dx
+  readArray x y >>= \case
+    Empty -> do
+      writeArray x y Road
+      dt2 ps dir >>= \case
+        True  -> dirFill (x + dx, y + dy) (dx, dy)
+        False -> do
+          let rx = dy
+              ry = dx
 
-      dt2 ps (rx, ry) >>= \case
-        True  -> dirFill (x + rx, y + ry) (rx, ry)
-        False -> pure ()
+          dt2 ps (rx, ry) >>= \case
+            True  -> fillStack %= (((x + rx, y + ry), (rx, ry)) :)
+            False -> pure ()
 
-      dt2 ps (-rx, -ry) >>= \case
-        True  -> dirFill (x - rx, y - ry) (-rx, -ry)
-        False -> modify (Set.insert (x, y))
+          dt2 ps (-rx, -ry) >>= \case
+            True  -> fillStack %= (((x - rx, y - ry), (-rx, -ry)) :)
+            False -> endPoint %= Set.insert (x, y)
+    _ -> pure ()
 
 floodFill :: forall width height sig m.
              (IsOdd width, IsOdd height,
               HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has (Error Skip :+: State (Set (Int, Int))) sig m,
+              Has (Error Skip :+: State FillStack) sig m,
               MonadIO m)
           => m ()
 floodFill = do
@@ -119,8 +144,19 @@ floodFill = do
       checkStartPoint (x, y) >>= \case
         False -> pure ()
         True -> do
-          modify (Set.insert (x, y))
+          endPoint %= Set.insert (x, y)
           dirFill (x, y) (1, 0)
+          let go = do
+               res <- use fillStack
+               case res of
+                 [] -> pure ()
+                 (ps, dir):xs -> do
+                   fillStack .= xs
+                   dt1 ps dir >>= \case
+                     True  -> dirFill ps dir
+                     False -> pure ()
+                   go
+          go
 
 
 
