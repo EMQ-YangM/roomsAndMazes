@@ -67,6 +67,9 @@ spanTree = do
           Full -> do
             writeArray px py Span
             forM_ dr $ \(dx,dy) -> fillFull (px + dx, py + dy)
+          Road -> do
+            writeArray px py Span
+            forM_ dr $ \(dx,dy) -> fillFull (px + dx, py + dy)
           ConnPoint -> do
             cps <- use cpSet
             if Set.member p cps
@@ -82,7 +85,6 @@ spanTree = do
                       then writeArray px py Span
                       else writeArray px py Empty
                   else writeArray px py Empty
-                -- writeArray px py Empty
                 cpSet %= Set.delete p
               else cpSet %= Set.insert p
           _    -> pure ()
@@ -104,32 +106,6 @@ spanTree = do
             Full -> pure [(Full, p, np)]
             _    -> pure []
 
-
-      fillRoad p@(px, py) = do
-        readArray px py >>= \case
-          Road -> do
-            writeArray px py Span
-            forM_ dr $ \(dx,dy) -> fillRoad (px + dx, py + dy)
-          ConnPoint -> do
-            cps <- use cpSet
-            if Set.member p cps
-              then do
-                i <- uniformR (1, 100)
-                if i < (3 :: Int)
-                  then do -- writeArray px py Span
-                    res <- forM dr $ \(dx, dy) -> do
-                      readArray (px + dx) (py + dy) >>= \case
-                        Span -> pure 1
-                        _    -> pure 0
-                    if sum res < 3
-                      then writeArray px py Span
-                      else writeArray px py Empty
-
-                  else writeArray px py Empty
-                cpSet %= Set.delete p
-              else cpSet %= Set.insert p
-          _ -> pure ()
-
   sp <- getStart
   fillFull sp
 
@@ -141,7 +117,7 @@ spanTree = do
             res <- selectAConnectPoint
             case concat res of
               [(t, (px, py), np)] -> case t of
-                Road -> writeArray px py Span >> fillRoad np
+                Road -> writeArray px py Span >> fillFull np
                 Full -> writeArray px py Span >> fillFull np
                 _    -> error "never happened"
               _        -> error "never happened"

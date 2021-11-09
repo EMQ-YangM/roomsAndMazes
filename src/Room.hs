@@ -81,13 +81,13 @@ createRooms :: forall width height sig m.
                 (IsOdd width, IsOdd height,
                  HasLabelled SizeArray (SizeArray width height Block) sig m,
                  Has (Random :+: Error Skip :+: State CPoints) sig m)
-             => m ()
-createRooms = do
+             => Int -> m ()
+createRooms maxCycle = do
 
   let w = fromIntegral $ natVal @width Proxy
       h = fromIntegral $ natVal @height Proxy
 
-      maxCycle = 10000
+      -- maxCycle = 10000
       -- maxCycle = 10000000
       -- maxCycle = 1000000
 

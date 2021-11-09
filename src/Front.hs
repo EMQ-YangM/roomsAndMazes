@@ -87,7 +87,7 @@ renderAll :: forall width height sig m.
           -> m ()
 renderAll render manager = do
 
-  createRooms
+  createRooms 2000
   floodFill
   cp <- get @CPoints
   connectPoint cp
@@ -108,7 +108,7 @@ renderAll render manager = do
             put (FillStack [] Set.empty)
             put (CPoints [])
 
-            createRooms
+            createRooms 2000
             floodFill
             cp <- get @CPoints
             connectPoint cp

@@ -64,7 +64,8 @@ createAll gen = do
   (gen1, (cp, _)) <-runRandom (R.mkStdGen gen)
             $ runState (CPoints [])
             $ runError @Skip
-            $ withTime "create rooms" createRooms
+            $ withTime "create rooms"
+            $ createRooms 1000000
 
   (s, _) <- runState (FillStack [] Set.empty)
             $ runError @Skip
@@ -98,17 +99,11 @@ withTime s f = do
 
 rungen :: IO ()
 rungen = do
-  -- let w = 8011
-  --     h = 8011
-
   let w = 2011
       h = 2011
-  -- let w = 3841
-  --     h = 3841
 
   t1 <- getCurrentTime
 
-  -- arr <- liftIO $ A.newArray ((0,0), (w - 1, h - 1)) Empty
   vec <- liftIO $ V.replicate (fromIntegral $ w * h) Empty
   -- r <- randomIO
   let r = 10
