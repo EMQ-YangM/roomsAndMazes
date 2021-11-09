@@ -46,6 +46,65 @@ newtype CPSet
 
 makeLenses ''CPSet
 
+
+fillFull :: forall width height sig m.
+            (IsOdd width, IsOdd height,
+             HasLabelled SizeArray (SizeArray width height Block) sig m,
+             Has (Random :+: State CPSet) sig m,
+             MonadIO m)
+         => (Int, Int)
+         -> m ()
+fillFull p@(px, py) = do
+  readArray px py >>= \case
+    Full -> do
+      writeArray px py Span
+      forM_ dr $ \(dx,dy) -> fillFull (px + dx, py + dy)
+    Road -> do
+      writeArray px py Span
+      forM_ dr $ \(dx,dy) -> fillFull (px + dx, py + dy)
+    ConnPoint -> do
+      cps <- use cpSet
+      if Set.member p cps
+        then do
+          i <- uniformR (1, 100)
+          if i < (3 :: Int)
+            then do
+              res <- forM dr $ \(dx, dy) -> do
+                readArray (px + dx) (py + dy) >>= \case
+                  Span -> pure 1
+                  _    -> pure 0
+              if sum res < 3
+                then writeArray px py Span
+                else writeArray px py Empty
+            else writeArray px py Empty
+          cpSet %= Set.delete p
+        else cpSet %= Set.insert p
+    _    -> pure ()
+
+selectAConnectPoint :: forall width height sig m.
+            (IsOdd width, IsOdd height,
+             HasLabelled SizeArray (SizeArray width height Block) sig m,
+             Has (Random :+: State CPSet) sig m,
+             MonadIO m) => m (Block, (Int,Int), (Int, Int))
+selectAConnectPoint = do
+  cps <- use cpSet
+  let size = Set.size cps
+  v <- uniformR (0, size - 1)
+  let p@(px, py) = Set.elemAt v cps
+
+  cpSet %= Set.delete p -- delete select point from set
+
+  let go [] = error "never happened"
+      go ((dx,dy) : ls) = do
+           let npx = px + dx
+               npy = py + dy
+               np = (npx, npy)
+           readArray npx npy >>= \case
+             Road -> pure (Road, p, np)
+             Full -> pure (Full, p, np)
+             _    -> go ls
+  go dr
+
 spanTree :: forall width height sig m.
             (IsOdd width, IsOdd height,
              HasLabelled SizeArray (SizeArray width height Block) sig m,
@@ -62,50 +121,6 @@ spanTree = do
           Full -> pure (sx, sy)
           _    -> getStart
 
-  let fillFull p@(px, py) = do
-        readArray px py >>= \case
-          Full -> do
-            writeArray px py Span
-            forM_ dr $ \(dx,dy) -> fillFull (px + dx, py + dy)
-          Road -> do
-            writeArray px py Span
-            forM_ dr $ \(dx,dy) -> fillFull (px + dx, py + dy)
-          ConnPoint -> do
-            cps <- use cpSet
-            if Set.member p cps
-              then do
-                i <- uniformR (1, 100)
-                if i < (3 :: Int)
-                  then do
-                    res <- forM dr $ \(dx, dy) -> do
-                      readArray (px + dx) (py + dy) >>= \case
-                        Span -> pure 1
-                        _    -> pure 0
-                    if sum res < 3
-                      then writeArray px py Span
-                      else writeArray px py Empty
-                  else writeArray px py Empty
-                cpSet %= Set.delete p
-              else cpSet %= Set.insert p
-          _    -> pure ()
-
-      selectAConnectPoint = do
-        cps <- use cpSet
-        let size = Set.size cps
-        v <- uniformR (0, size - 1)
-        let p@(px, py) = Set.elemAt v cps
-
-        cpSet %= Set.delete p -- delete select point from set
-
-        forM dr $ \(dx, dy) -> do
-          let npx = px + dx
-              npy = py + dy
-              np = (npx, npy)
-          readArray npx npy >>= \case
-            Road -> pure [(Road, p, np)]
-            Full -> pure [(Full, p, np)]
-            _    -> pure []
-
   sp <- getStart
   fillFull sp
 
@@ -114,12 +129,10 @@ spanTree = do
         if Set.null cps
           then pure ()
           else do
-            res <- selectAConnectPoint
-            case concat res of
-              [(t, (px, py), np)] -> case t of
-                Road -> writeArray px py Span >> fillFull np
-                Full -> writeArray px py Span >> fillFull np
-                _    -> error "never happened"
-              _        -> error "never happened"
+            (t, (px, py), np) <- selectAConnectPoint
+            case t of
+               Road -> writeArray px py Span >> fillFull np
+               Full -> writeArray px py Span >> fillFull np
+               _    -> error "never happened"
             go
   go
