@@ -33,24 +33,21 @@ import           Data.Set (Set)
 import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Room
-import           SizeArray
+import           Control.Carrier.SizeArray.IO
 import           System.Random (randomIO)
 import qualified System.Random as R
 
 dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
 
 
-antiCarve :: forall width height sig m.
-             (IsOdd width, IsOdd height,
-              HasLabelled SizeArray (SizeArray width height Block) sig m,
+antiCarve :: (HasLabelled SizeArray (SizeArray Block) sig m,
               Has (State FillStack) sig m)
           => m ()
 antiCarve = do
 
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
-
-      go (x, y) = do
+  w <- arrayWidth
+  h <- arrayHeight
+  let go (x, y) = do
             res <- forM dr $ \(dx, dy) -> do
               let nx = x+dx
                   ny = y+dy

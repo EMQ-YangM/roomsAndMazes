@@ -31,7 +31,7 @@ import           Data.Set (Set)
 import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Optics (makeLenses)
-import           SizeArray
+import           Control.Carrier.SizeArray.IO
 import           System.Random (randomIO)
 import qualified System.Random as R
 
@@ -42,6 +42,14 @@ data Block
   | ConnPoint
   | Span
   deriving (Show, Eq)
+
+-- {-# SPECIALISE readArray ::HasLabelled SizeArray (SizeArray Block) sig m => Int -> Int -> m Block #-}
+-- {-# SPECIALISE writeArray ::HasLabelled SizeArray (SizeArray Block) sig m => Int -> Int -> Block -> m () #-}
+-- {-# SPECIALISE arrayHeight ::HasLabelled SizeArray (SizeArray Block) sig m => m Int #-}
+-- {-# SPECIALISE arrayWidth ::HasLabelled SizeArray (SizeArray Block) sig m => m Int #-}
+
+-- alg :: Handler ctx n (ArrayC e m)
+-- -> (:+:) (SizeArray e) sig n a -> ctx () -> ArrayC e m (ctx a)
 
 type family IsOdd' (a :: Nat) :: Constraint where
   IsOdd' 0 = TypeError (Text "need Odd, but input is Even" )
@@ -77,21 +85,15 @@ data FillStack
 
 makeLenses ''FillStack
 
-createRooms :: forall width height sig m.
-                (IsOdd width, IsOdd height,
-                 HasLabelled SizeArray (SizeArray width height Block) sig m,
-                 Has (Random :+: Error Skip :+: State CPoints) sig m)
-             => Int -> m ()
+createRooms :: (HasLabelled SizeArray (SizeArray Block) sig m,
+                Has (Random :+: Error Skip :+: State CPoints) sig m)
+            => Int
+            -> m ()
 createRooms maxCycle = do
+  w <- arrayWidth
+  h <- arrayHeight
 
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
-
-      -- maxCycle = 10000
-      -- maxCycle = 10000000
-      -- maxCycle = 1000000
-
-      (oneS', oneWB) = createA cb
+  let (oneS', oneWB) = createA cb
 
       oneS = oneS' - 1
 

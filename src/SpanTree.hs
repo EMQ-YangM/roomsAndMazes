@@ -34,7 +34,7 @@ import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Optics (makeLenses)
 import           Room
-import           SizeArray
+import           Control.Carrier.SizeArray.IO
 import           System.Random (randomIO)
 import qualified System.Random as R
 
@@ -47,11 +47,8 @@ newtype CPSet
 makeLenses ''CPSet
 
 
-fillFull :: forall width height sig m.
-            (IsOdd width, IsOdd height,
-             HasLabelled SizeArray (SizeArray width height Block) sig m,
-             Has (Random :+: State CPSet) sig m,
-             MonadIO m)
+fillFull :: (HasLabelled SizeArray (SizeArray Block) sig m,
+             Has (Random :+: State CPSet) sig m)
          => (Int, Int)
          -> m ()
 fillFull p@(px, py) = do
@@ -81,11 +78,9 @@ fillFull p@(px, py) = do
         else cpSet %= Set.insert p
     _    -> pure ()
 
-selectAConnectPoint :: forall width height sig m.
-            (IsOdd width, IsOdd height,
-             HasLabelled SizeArray (SizeArray width height Block) sig m,
-             Has (Random :+: State CPSet) sig m,
-             MonadIO m) => m (Block, (Int,Int), (Int, Int))
+selectAConnectPoint :: (HasLabelled SizeArray (SizeArray Block) sig m,
+                        Has (Random :+: State CPSet) sig m)
+                    => m (Block, (Int,Int), (Int, Int))
 selectAConnectPoint = do
   cps <- use cpSet
   let size = Set.size cps
@@ -105,16 +100,15 @@ selectAConnectPoint = do
              _    -> go ls
   go dr
 
-spanTree :: forall width height sig m.
-            (IsOdd width, IsOdd height,
-             HasLabelled SizeArray (SizeArray width height Block) sig m,
-             Has (Random :+: State CPSet) sig m,
-             MonadIO m)
+spanTree :: (HasLabelled SizeArray (SizeArray Block) sig m,
+             Has (Random :+: State CPSet) sig m)
          => m ()
 spanTree = do
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
-      getStart = do
+
+  w <- arrayWidth
+  h <- arrayHeight
+
+  let getStart = do
         sx <- uniformR (1, w-1)
         sy <- uniformR (1, h-1)
         readArray sx sy >>= \case

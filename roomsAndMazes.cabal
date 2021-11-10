@@ -21,13 +21,14 @@ extra-source-files: CHANGELOG.md
 library
     exposed-modules:  Control.Effect.Array
                     , Control.Carrier.Array.IO
+                    , Control.Effect.SizeArray
+                    , Control.Carrier.SizeArray.IO
                     , Room
                     , SpanTree
                     , AntiCarve
                     , ConnectPoint
                     , FloodFill
                     , Front
-                    , SizeArray
                     , Shuffle
                     , GameOfLive.DoubleArray
                     , GameOfLive.Front

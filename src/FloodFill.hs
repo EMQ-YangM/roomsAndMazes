@@ -32,21 +32,17 @@ import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Room
 import           Shuffle
-import           SizeArray
+import           Control.Carrier.SizeArray.IO
 import           System.Random (mkStdGen, randomIO)
 import qualified System.Random as R
 
 dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
 
-checkStartPoint :: forall width height sig m.
-                   (IsOdd width, IsOdd height,
-                    HasLabelled SizeArray (SizeArray width height Block) sig m,
-                    MonadIO m)
+{-# INLINE checkStartPoint #-}
+checkStartPoint :: (HasLabelled SizeArray (SizeArray Block) sig m)
                 => (Int, Int)
                 -> m Bool
 checkStartPoint ps@(x, y) = do
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
   readArray x y >>= \case
     Empty -> do
       res <- forM dr $ \(dx,dy) -> readArray (x + dx) (y + dy)
@@ -54,42 +50,16 @@ checkStartPoint ps@(x, y) = do
     _ -> pure False
 
 
-{-# INLINE dt1 #-}
-dt1 :: forall width height sig m.
-       (IsOdd width, IsOdd height,
-        HasLabelled SizeArray (SizeArray width height Block) sig m,
-        MonadIO m)
-    => (Int, Int)   -- start point
+{-# INLINE dtn #-}
+dtn :: (HasLabelled SizeArray (SizeArray Block) sig m)
+    => Int -> (Int, Int)   -- start point
     -> (Int, Int)   -- dir dx dy
     -> m Bool
-dt1 ps@(x, y) dir@(dx, dy) = do
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
-
-      nx = x + dx
-      ny = y + dy
-
-  if nx >= 0 && nx <= w-1 &&
-     ny >= 0 && ny <= h-1
-    then readArray nx ny >>= \case
-           Empty -> pure True
-           _     -> pure False
-    else pure False
-
-{-# INLINE dt2 #-}
-dt2 :: forall width height sig m.
-       (IsOdd width, IsOdd height,
-        HasLabelled SizeArray (SizeArray width height Block) sig m,
-        MonadIO m)
-    => (Int, Int)   -- start point
-    -> (Int, Int)   -- dir dx dy
-    -> m Bool
-dt2 ps@(x, y) dir@(dx, dy) = do
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
-
-      nx = x + dx * 2
-      ny = y + dy * 2
+dtn i ps@(x, y) dir@(dx, dy) = do
+  w <- arrayWidth
+  h <- arrayHeight
+  let nx = x + dx * i
+      ny = y + dy * i
 
   if nx >= 0 && nx <= w-1 &&
      ny >= 0 && ny <= h-1
@@ -99,45 +69,37 @@ dt2 ps@(x, y) dir@(dx, dy) = do
     else pure False
 
 
-dirFill :: forall width height sig m.
-              (IsOdd width, IsOdd height,
-               HasLabelled SizeArray (SizeArray width height Block) sig m,
-               Has (State FillStack) sig m,
-               -- Has (Error Skip :+: State [((Int, Int), (Int, Int))]) sig m,
-               MonadIO m)
-           => (Int, Int)   -- start point
-           -> (Int, Int)   -- dir dx dy
-           -> m ()
+dirFill :: (HasLabelled SizeArray (SizeArray Block) sig m,
+            Has (State FillStack) sig m)
+        => (Int, Int)   -- start point
+        -> (Int, Int)   -- dir dx dy
+        -> m ()
 dirFill ps@(x, y) dir@(dx, dy) = do
 
   readArray x y >>= \case
     Empty -> do
       writeArray x y Road
-      dt2 ps dir >>= \case
+      dtn 2 ps dir >>= \case
         True  -> dirFill (x + dx, y + dy) (dx, dy)
         False -> do
           let rx = dy
               ry = dx
 
-          dt2 ps (rx, ry) >>= \case
+          dtn 2 ps (rx, ry) >>= \case
             True  -> fillStack %= (((x + rx, y + ry), (rx, ry)) :)
             False -> pure ()
 
-          dt2 ps (-rx, -ry) >>= \case
+          dtn 2 ps (-rx, -ry) >>= \case
             True  -> fillStack %= (((x - rx, y - ry), (-rx, -ry)) :)
             False -> endPoint %= Set.insert (x, y)
     _ -> pure ()
 
-floodFill :: forall width height sig m.
-             (IsOdd width, IsOdd height,
-              HasLabelled SizeArray (SizeArray width height Block) sig m,
-              Has (Error Skip :+: State FillStack) sig m,
-              MonadIO m)
+floodFill :: (HasLabelled SizeArray (SizeArray Block) sig m,
+              Has (Error Skip :+: State FillStack) sig m)
           => m ()
 floodFill = do
-
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
+  w <- arrayWidth
+  h <- arrayHeight
 
   forM_ [1, 3 .. h-1] $ \y -> do
     forM_ [1, 3 ..w-1] $ \x -> do
@@ -152,7 +114,7 @@ floodFill = do
                  [] -> pure ()
                  (ps, dir):xs -> do
                    fillStack .= xs
-                   dt1 ps dir >>= \case
+                   dtn 1 ps dir >>= \case
                      True  -> dirFill ps dir
                      False -> pure ()
                    go

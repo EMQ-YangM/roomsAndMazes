@@ -44,7 +44,7 @@ import           Room
 import           SDL.Font as SF
 import           SDL.Framerate hiding (get)
 import           SDL.Primitive
-import           SizeArray
+import           Control.Carrier.SizeArray.IO
 import           SpanTree
 import           System.Random (randomIO)
 import qualified System.Random as R
@@ -72,9 +72,7 @@ initGUI w h = do
   return (renderer, fm)
 
 {-# INLINE renderAll #-}
-renderAll :: forall width height sig m.
-             (IsOdd width, IsOdd height,
-              HasLabelled SizeArray (SizeArray width height Block) sig m,
+renderAll :: (HasLabelled SizeArray (SizeArray Block) sig m,
               Has (Random :+: Error Skip
                           :+: State CPSet
                           :+: State FillStack
@@ -95,9 +93,9 @@ renderAll render manager = do
   antiCarve
   put True  -- is render ?
 
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
-      handler event =
+  w <- arrayWidth
+  h <- arrayHeight
+  let handler event =
         case eventPayload event of
           QuitEvent -> throwError Skip
           (KeyboardEvent (KeyboardEventData _ Pressed _ (Keysym _ KeycodeEscape _))) -> throwError Skip
@@ -182,13 +180,13 @@ rungen = do
   -- let r = 10
   runRandom (R.mkStdGen r)
     $ runState @CPSet (CPSet Set.empty)
-    $ runArray' arr
+    $ runArray' w h arr
     $ runState (FillStack [] Set.empty)
     $ runState (CPoints [])
     $ runState False
     $ runError @Skip
     $ do
-      renderAll @161 @89 render manager
+      renderAll render manager
   SDL.quit
   return ()
 

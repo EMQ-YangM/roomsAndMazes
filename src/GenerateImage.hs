@@ -49,15 +49,13 @@ import           Room
 import           SDL.Font as SF
 import           SDL.Framerate hiding (get)
 import           SDL.Primitive
-import           SizeArray
+import           Control.Carrier.SizeArray.IO
 import           SpanTree
 import           System.Process
 import           System.Random (randomIO)
 import qualified System.Random as R
 
-createAll :: forall width height sig m.
-             (IsOdd width, IsOdd height,
-              HasLabelled SizeArray (SizeArray width height Block) sig m,
+createAll :: (HasLabelled SizeArray (SizeArray Block) sig m,
               MonadIO m)
           => Int -> m ()
 createAll gen = do
@@ -107,10 +105,8 @@ rungen = do
   vec <- liftIO $ V.replicate (fromIntegral $ w * h) Empty
   -- r <- randomIO
   let r = 10
-  runArray' vec
-    $ createAll @2011
-                @2011
-                r
+  runArray' w h vec
+    $ createAll r
   newArr <- unsafeFreeze vec
   let img = generateImage @Pixel8 (\x y -> t $ newArr ! (x + y * w))  w h
   writeBitmap "bigMap.bmp" img

@@ -30,23 +30,21 @@ import           Data.Proxy
 import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Room
-import           SizeArray
+import           Control.Carrier.SizeArray.IO
 import           System.Random (randomIO)
 import qualified System.Random as R
 
 dr = [(1,0), (0, -1), (-1,0), (0,1)] :: [(Int, Int)]
 
-connectPoint :: forall width height sig m.
-                (IsOdd width, IsOdd height,
-                 HasLabelled SizeArray (SizeArray width height Block) sig m)
+connectPoint :: (HasLabelled SizeArray (SizeArray Block) sig m)
              => CPoints
              -> m ()
 connectPoint (CPoints s) = do
 
-  let w = fromIntegral $ natVal @width Proxy
-      h = fromIntegral $ natVal @height Proxy
+  w <- arrayWidth
+  h <- arrayHeight
 
-      go c p@(x,y) ds = do
+  let go c p@(x,y) ds = do
         if c > 10
           then writeArray x y ConnPoint
           else do
