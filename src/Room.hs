@@ -21,6 +21,7 @@ import           Control.Carrier.Random.Gen
 import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
 import           Control.Effect.Optics ((%=))
+import           Control.Effect.SizeArray
 import           Control.Monad
 import           Control.Monad.IO.Class
 import qualified Data.Array as A
@@ -31,7 +32,6 @@ import           Data.Set (Set)
 import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Optics (makeLenses)
-import           Control.Carrier.SizeArray.IO
 import           System.Random (randomIO)
 import qualified System.Random as R
 
@@ -42,14 +42,6 @@ data Block
   | ConnPoint
   | Span
   deriving (Show, Eq)
-
--- {-# SPECIALISE readArray ::HasLabelled SizeArray (SizeArray Block) sig m => Int -> Int -> m Block #-}
--- {-# SPECIALISE writeArray ::HasLabelled SizeArray (SizeArray Block) sig m => Int -> Int -> Block -> m () #-}
--- {-# SPECIALISE arrayHeight ::HasLabelled SizeArray (SizeArray Block) sig m => m Int #-}
--- {-# SPECIALISE arrayWidth ::HasLabelled SizeArray (SizeArray Block) sig m => m Int #-}
-
--- alg :: Handler ctx n (ArrayC e m)
--- -> (:+:) (SizeArray e) sig n a -> ctx () -> ArrayC e m (ctx a)
 
 type family IsOdd' (a :: Nat) :: Constraint where
   IsOdd' 0 = TypeError (Text "need Odd, but input is Even" )

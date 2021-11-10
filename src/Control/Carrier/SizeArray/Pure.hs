@@ -12,8 +12,18 @@
 {-# LANGUAGE TypeFamilies               #-}
 {-# LANGUAGE TypeOperators              #-}
 {-# LANGUAGE UndecidableInstances       #-}
-module Control.Carrier.SizeArray.Pure (SizeArray) where
+module Control.Carrier.SizeArray.Pure (
+    SizeArray
+  , arrayHeight
+  , arrayWidth
+  , readArray
+  , runArray
+  , runArray'
+  , sfor
+  , writeArray
+  ) where
 
+import           Control.Arrow (Arrow (first))
 import           Control.Carrier.Lift
 import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
@@ -70,6 +80,6 @@ runArray' :: (MonadIO m)
          -> Int
          -> Vector e
          -> Labelled SizeArray (ArrayC e) m a
-         -> m a
+         -> m (Vector e, a)
 runArray' w h arr fun = do
-  snd <$> (runState (InternalState w h arr) . runArrayC . runLabelled $ fun)
+  first _vector <$> (runState (InternalState w h arr) . runArrayC . runLabelled $ fun)

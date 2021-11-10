@@ -24,6 +24,7 @@ import           ConnectPoint
 import           Control.Carrier.Error.Either
 import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
+import           Control.Carrier.SizeArray.IO
 import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
 import           Control.Effect.Optics ((%=), (.=))
@@ -44,7 +45,6 @@ import           Room
 import           SDL.Font as SF
 import           SDL.Framerate hiding (get)
 import           SDL.Primitive
-import           Control.Carrier.SizeArray.IO
 import           SpanTree
 import           System.Random (randomIO)
 import qualified System.Random as R

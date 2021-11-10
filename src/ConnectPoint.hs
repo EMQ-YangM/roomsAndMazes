@@ -21,6 +21,7 @@ import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
 import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
+import           Control.Effect.SizeArray
 import           Control.Monad
 import           Control.Monad.IO.Class
 import qualified Data.Array as A
@@ -30,7 +31,6 @@ import           Data.Proxy
 import qualified Data.Set as Set
 import           GHC.TypeLits
 import           Room
-import           Control.Carrier.SizeArray.IO
 import           System.Random (randomIO)
 import qualified System.Random as R
 

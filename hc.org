@@ -118,3 +118,18 @@ span tree: 6.38584457s
 anti carve: 2.177505321s
 16.437505802s
 
+-- pure 10000 211
+create rooms: 5.220401792s
+flood fill: 0.58419195s
+connect point: 0.71938822s
+span tree: 2.925547849s
+anti carve: 0.262359242s
+9.712713168s
+
+-- IO 10000 211
+create rooms: 0.057352901s
+flood fill: 0.024998783s
+connect point: 0.012228777s
+span tree: 0.063915218s
+anti carve: 0.010446237s
+0.170155926s
