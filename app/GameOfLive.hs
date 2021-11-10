@@ -1,6 +1,6 @@
 module Main where
 
-import Front
+import GameOfLive.Front
 
 main :: IO ()
 main = rungen

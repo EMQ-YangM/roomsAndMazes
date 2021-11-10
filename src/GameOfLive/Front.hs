@@ -82,7 +82,7 @@ genGlobalCell render manager = do
            forM [0..w-1] $ \x -> do
              v <- SA.readArray x y
              when (isLive v) $ do
-               fillRect render (Just (Rectangle (P (V2 (fromIntegral x * 5) (fromIntegral y * 5))) (V2 5 5) ))
+               fillRect render (Just (Rectangle (P (V2 (fromIntegral x * 10) (fromIntegral y * 10))) (V2 10 10) ))
          present render
          delay_ manager
 
@@ -142,7 +142,7 @@ initGUI = do
           windowGraphicsContext = NoGraphicsContext,
           windowPosition = Wherever,
           windowResizable = True,
-          windowInitialSize = V2 800 600,
+          windowInitialSize = V2 1600 1200,
           windowVisible = True
         }
   renderer <- createRenderer window (-1) defaultRenderer
