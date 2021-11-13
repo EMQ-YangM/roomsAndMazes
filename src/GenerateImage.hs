@@ -25,6 +25,7 @@ import           ConnectPoint
 import           Control.Carrier.Error.Either
 import           Control.Carrier.Lift
 import           Control.Carrier.Random.Gen
+import           Control.Carrier.SizeArray.Unbox
 import           Control.Carrier.State.Strict
 import           Control.Effect.Labelled
 import           Control.Effect.Optics ((%=), (.=))
@@ -39,17 +40,15 @@ import           Data.Set (Set)
 import qualified Data.Set as Set
 import qualified Data.Text as T
 import           Data.Time
-import           Data.Vector (unsafeFreeze, (!))
-import qualified Data.Vector.Mutable as V
+import qualified Data.Vector.Unboxed.Mutable as V
+import qualified Data.Vector.Unboxed as UV
 import           Data.Word (Word8)
 import           FloodFill
 import           Foreign.C.Types (CInt)
-import           GHC.TypeLits
 import           Room
 import           SDL.Font as SF
 import           SDL.Framerate hiding (get)
 import           SDL.Primitive
-import           Control.Carrier.SizeArray.IO
 import           SpanTree
 import           System.Process
 import           System.Random (randomIO)
@@ -107,8 +106,8 @@ rungen = do
   let r = 10
   runArray' w h vec
     $ createAll r
-  newArr <- unsafeFreeze vec
-  let img = generateImage @Pixel8 (\x y -> t $ newArr ! (x + y * w))  w h
+  newArr <- UV.unsafeFreeze vec
+  let img = generateImage @Pixel8 (\x y -> t $ newArr UV.! (x + y * w))  w h
   writeBitmap "bigMap.bmp" img
   t2 <- getCurrentTime
   print $ diffUTCTime t2 t1

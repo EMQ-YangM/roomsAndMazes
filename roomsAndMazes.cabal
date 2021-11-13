@@ -23,6 +23,8 @@ library
                     , Control.Carrier.Array.IO
                     , Control.Effect.SizeArray
                     , Control.Carrier.SizeArray.IO
+                    , Control.Carrier.SizeArray.Unbox
+                    , Control.Carrier.SizeArray.ST
                     , Control.Carrier.SizeArray.Pure
                     , Room
                     , SpanTree

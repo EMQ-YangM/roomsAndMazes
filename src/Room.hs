@@ -30,6 +30,11 @@ import           Data.Kind
 import           Data.Proxy
 import           Data.Set (Set)
 import qualified Data.Set as Set
+import qualified Data.Vector.Generic as G
+import qualified Data.Vector.Generic.Mutable as M
+import qualified Data.Vector.Primitive as P
+import qualified Data.Vector.Unboxed.Base as B
+import           Data.Word
 import           GHC.TypeLits
 import           Optics (makeLenses)
 import           System.Random (randomIO)
@@ -42,6 +47,72 @@ data Block
   | ConnPoint
   | Span
   deriving (Show, Eq)
+
+
+fromBlock :: Block -> Word8
+{-# INLINE fromBlock #-}
+fromBlock Empty     = 0
+fromBlock Full      = 1
+fromBlock Road      = 2
+fromBlock ConnPoint = 3
+fromBlock Span      = 4
+
+toBlock :: Word8 -> Block
+{-# INLINE toBlock #-}
+toBlock 0 = Empty
+toBlock 1 = Full
+toBlock 2 = Road
+toBlock 3 = ConnPoint
+toBlock 4 = Span
+toBlock _ = error ".."
+
+newtype instance B.MVector s Block = MV_Block (P.MVector s Word8)
+newtype instance B.Vector    Block = V_Block  (P.Vector    Word8)
+
+instance M.MVector B.MVector Block where
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicOverlaps #-}
+  {-# INLINE basicUnsafeNew #-}
+  {-# INLINE basicInitialize #-}
+  {-# INLINE basicUnsafeReplicate #-}
+  {-# INLINE basicUnsafeRead #-}
+  {-# INLINE basicUnsafeWrite #-}
+  {-# INLINE basicClear #-}
+  {-# INLINE basicSet #-}
+  {-# INLINE basicUnsafeCopy #-}
+  {-# INLINE basicUnsafeGrow #-}
+  basicLength (MV_Block v) = M.basicLength v
+  basicUnsafeSlice i n (MV_Block v) = MV_Block $ M.basicUnsafeSlice i n v
+  basicOverlaps (MV_Block v1) (MV_Block v2) = M.basicOverlaps v1 v2
+  basicUnsafeNew n = MV_Block `liftM` M.basicUnsafeNew n
+  basicInitialize (MV_Block v) = M.basicInitialize v
+  basicUnsafeReplicate n x = MV_Block `liftM` M.basicUnsafeReplicate n (fromBlock x)
+  basicUnsafeRead (MV_Block v) i = toBlock `liftM` M.basicUnsafeRead v i
+  basicUnsafeWrite (MV_Block v) i x = M.basicUnsafeWrite v i (fromBlock x)
+  basicClear (MV_Block v) = M.basicClear v
+  basicSet (MV_Block v) x = M.basicSet v (fromBlock x)
+  basicUnsafeCopy (MV_Block v1) (MV_Block v2) = M.basicUnsafeCopy v1 v2
+  basicUnsafeMove (MV_Block v1) (MV_Block v2) = M.basicUnsafeMove v1 v2
+  basicUnsafeGrow (MV_Block v) n = MV_Block `liftM` M.basicUnsafeGrow v n
+
+
+instance G.Vector B.Vector Block where
+  {-# INLINE basicUnsafeFreeze #-}
+  {-# INLINE basicUnsafeThaw #-}
+  {-# INLINE basicLength #-}
+  {-# INLINE basicUnsafeSlice #-}
+  {-# INLINE basicUnsafeIndexM #-}
+  {-# INLINE elemseq #-}
+  basicUnsafeFreeze (MV_Block v) = V_Block `liftM` G.basicUnsafeFreeze v
+  basicUnsafeThaw (V_Block v) = MV_Block `liftM` G.basicUnsafeThaw v
+  basicLength (V_Block v) = G.basicLength v
+  basicUnsafeSlice i n (V_Block v) = V_Block $ G.basicUnsafeSlice i n v
+  basicUnsafeIndexM (V_Block v) i = toBlock `liftM` G.basicUnsafeIndexM v i
+  basicUnsafeCopy (MV_Block mv) (V_Block v) = G.basicUnsafeCopy mv v
+  elemseq _ = seq
+
+instance B.Unbox Block
 
 type family IsOdd' (a :: Nat) :: Constraint where
   IsOdd' 0 = TypeError (Text "need Odd, but input is Even" )

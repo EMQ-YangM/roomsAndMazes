@@ -133,3 +133,11 @@ connect point: 0.012228777s
 span tree: 0.063915218s
 anti carve: 0.010446237s
 0.170155926s
+
+-- use unbox array
+create rooms: 4.367099703s
+flood fill: 2.004278182s
+connect point: 0.849569237s
+span tree: 5.790628396s
+anti carve: 2.090999298s
+15.173957343s

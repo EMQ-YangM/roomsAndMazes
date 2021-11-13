@@ -127,7 +127,8 @@ renderAll render manager = do
            True -> do
                 put False
 
-                rendererDrawColor render $= V4 155 100 0 255
+                -- rendererDrawColor render $= V4 155 100 0 255
+                rendererDrawColor render $= V4 0 0 0 255
                 clear render
 
 
@@ -153,8 +154,9 @@ renderAll render manager = do
                                                    (fromIntegral y * blockWidth)))
                                                    (V2 blockWidth blockWidth) ))
                       Span -> do
-                           -- rendererDrawColor render $= V4 0 0 0 255
-                           rendererDrawColor render $= V4 100 155 255 255
+                           -- rendererDrawColor render $= V4 100 155 255 255
+                           -- drawRect render
+                           rendererDrawColor render $= V4 0 255 0 255
                            drawRect render
                                  (Just (Rectangle (P (V2 (fromIntegral x * blockWidth)
                                                    (fromIntegral y * blockWidth)))
