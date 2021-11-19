@@ -64,7 +64,7 @@ fillFull p@(px, py) = do
       if Set.member p cps
         then do
           i <- uniformR (1, 100)
-          if i < (3 :: Int)
+          if i < (7 :: Int)
             then do
               res <- forM dr $ \(dx, dy) -> do
                 readArray (px + dx) (py + dy) >>= \case

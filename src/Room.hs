@@ -121,7 +121,7 @@ type family IsOdd' (a :: Nat) :: Constraint where
 
 type IsOdd a = (KnownNat a, IsOdd' a)
 
-cb = [(9,10), (5,10), (7,4), (15, 1), (25, 1)] :: [(Int,Int)]
+cb = [(9,10), (5,10), (7,4), (15, 1), (25, 5)] :: [(Int,Int)]
 
 createA :: [(Int,Int)] -> (Int, A.Array Int Int)
 createA input =
